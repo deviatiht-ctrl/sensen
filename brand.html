@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notre Marque - Histoire & Valeurs</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/brand.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar__left">
+      <a href="/">
+        <img src="/assets/img/logo-placeholder.svg" alt="Logo" class="navbar__logo" id="navbar-logo">
+      </a>
+    </div>
+    <div class="navbar__center">
+      <a href="/" class="store-name" id="store-name">NOM DU STORE</a>
+    </div>
+    <div class="navbar__right">
+      <a href="/admin/" class="navbar__admin" id="admin-link">Admin</a>
+      <a href="/brand.html" class="navbar__link navbar__link--brand">Marque</a>
+      <div class="navbar__icon navbar__icon--search">
+        <i data-lucide="search"></i>
+      </div>
+      <div class="navbar__icon navbar__icon--user">
+        <a href="/login.html">
+          <i data-lucide="user"></i>
+        </a>
+      </div>
+      <div class="navbar__icon">
+        <a href="/cart.html">
+          <i data-lucide="shopping-bag"></i>
+          <span class="navbar__badge" id="cart-badge" style="display: none;">0</span>
+        </a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="search-overlay">
+    <input type="text" class="search-overlay__input" placeholder="Rechercher un produit...">
+    <div class="search-overlay__close">
+      <i data-lucide="x"></i>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="menu-overlay" id="menu-overlay"></div>
+  <div class="mobile-menu" id="mobile-menu">
+    <div class="mobile-menu__close" id="mobile-menu-close">
+      <i data-lucide="x"></i>
+    </div>
+    <nav class="mobile-menu__nav">
+      <a href="/">Boutique</a>
+      <a href="/brand.html" style="color: var(--color-primary); font-weight: 500;">Notre Marque</a>
+      <a href="/?category=vetements">Vêtements</a>
+      <a href="/?category=parfums">Parfums</a>
+      <a href="/?category=accessoires">Accessoires</a>
+      <a href="/?category=nouveautes">Nouveautés</a>
+      <a href="/?category=soldes">Soldes</a>
+      <a href="/account.html">Mon compte</a>
+    </nav>
+  </div>
+
+  <!-- Brand Hero -->
+  <section class="brand-hero">
+    <div class="brand-hero__content">
+      <span class="brand-hero__subtitle">Notre Histoire</span>
+      <h1 class="brand-hero__title">L'Excellence depuis 2020</h1>
+      <p class="brand-hero__text">
+        Une boutique de luxe dédiée à l'élégance intemporelle et au raffinement.
+        Chaque pièce est sélectionnée avec soin pour vous offrir le meilleur de la mode.
+      </p>
+    </div>
+    <div class="brand-hero__image">
+      <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80" alt="Notre boutique">
+    </div>
+  </section>
+
+  <!-- Brand Values -->
+  <section class="brand-section">
+    <div class="brand-section__container">
+      <h2 class="brand-section__title">Nos Valeurs</h2>
+      <div class="brand-values">
+        <article class="brand-value">
+          <div class="brand-value__icon">
+            <i data-lucide="gem"></i>
+          </div>
+          <h3 class="brand-value__title">Qualité Premium</h3>
+          <p class="brand-value__text">
+            Nous sélectionnons uniquement des matériaux nobles et des finitions impeccable.
+            Chaque produit subit un contrôle qualité rigoureux avant d'être proposé.
+          </p>
+        </article>
+        
+        <article class="brand-value">
+          <div class="brand-value__icon">
+            <i data-lucide="heart"></i>
+          </div>
+          <h3 class="brand-value__title">Artisanat</h3>
+          <p class="brand-value__text">
+            Nous collaborons avec des artisans et créateurs passionnés qui mettent 
+            leur savoir-faire au service de pièces uniques et durables.
+          </p>
+        </article>
+        
+        <article class="brand-value">
+          <div class="brand-value__icon">
+            <i data-lucide="leaf"></i>
+          </div>
+          <h3 class="brand-value__title">Durabilité</h3>
+          <p class="brand-value__text">
+            Nous nous engageons pour une mode responsable : sourcing éthique, 
+            emballages recyclables et collections pensées pour durer.
+          </p>
+        </article>
+        
+        <article class="brand-value">
+          <div class="brand-value__icon">
+            <i data-lucide="users"></i>
+          </div>
+          <h3 class="brand-value__title">Service Client</h3>
+          <p class="brand-value__text">
+            Notre équipe est à votre disposition pour vous conseiller et vous accompagner. 
+            Votre satisfaction est notre priorité absolue.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Brand Story -->
+  <section class="brand-section brand-section--light">
+    <div class="brand-section__container">
+      <div class="brand-story">
+        <div class="brand-story__image">
+          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80" alt="Notre atelier">
+        </div>
+        <div class="brand-story__content">
+          <span class="brand-story__label">Notre Engagement</span>
+          <h2 class="brand-story__title">Une Vision de l'Élégance</h2>
+          <p class="brand-story__text">
+            Fondée en 2020, notre boutique est née d'une passion pour la mode 
+            intemporelle et l'art de vivre. Nous croyons que l'élégance ne se 
+            démode pas : elle se réinvente.
+          </p>
+          <p class="brand-story__text">
+            Notre sélection rigoureuse porte sur des pièces qui allient 
+            esthétique, qualité et fonctionnalité. Du prêt-à-porter aux 
+            accessoires, chaque article raconte une histoire de savoir-faire 
+            et d'excellence.
+          </p>
+          <a href="/" class="btn btn--primary">
+            Découvrir nos produits
+            <i data-lucide="arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Brand Articles -->
+  <section class="brand-section">
+    <div class="brand-section__container">
+      <h2 class="brand-section__title">Articles & Actualités</h2>
+      <div class="brand-articles">
+        <article class="brand-article">
+          <div class="brand-article__image">
+            <img src="https://images.unsplash.com/photo-1558171813-4c088753af8f?w=600&q=80" alt="Collection Printemps">
+          </div>
+          <div class="brand-article__content">
+            <span class="brand-article__date">15 Mars 2025</span>
+            <h3 class="brand-article__title">Nouvelle Collection Printemps-Été 2025</h3>
+            <p class="brand-article__excerpt">
+              Découvrez notre nouvelle collection aux tonalités douces et aux 
+              coupes fluides. Des pièces légères pour affronter l'été avec style.
+            </p>
+            <a href="#" class="brand-article__link" onclick="showToast('Article complet bientôt disponible', 'info'); return false;">
+              Lire la suite <i data-lucide="arrow-right"></i>
+            </a>
+          </div>
+        </article>
+        
+        <article class="brand-article">
+          <div class="brand-article__image">
+            <img src="https://images.unsplash.com/photo-1558171813-4c088753af8f?w=600&q=80" alt="Guide Parfums">
+          </div>
+          <div class="brand-article__content">
+            <span class="brand-article__date">28 Février 2025</span>
+            <h3 class="brand-article__title">Guide : Choisir Son Parfum Signature</h3>
+            <p class="brand-article__excerpt">
+              Comment trouver le parfum qui vous correspond ? Nos conseils 
+              pour identifier vos notes préférées et créer votre sillage unique.
+            </p>
+            <a href="#" class="brand-article__link" onclick="showToast('Article complet bientôt disponible', 'info'); return false;">
+              Lire la suite <i data-lucide="arrow-right"></i>
+            </a>
+          </div>
+        </article>
+        
+        <article class="brand-article">
+          <div class="brand-article__image">
+            <img src="https://images.unsplash.com/photo-1558171813-4c088753af8f?w=600&q=80" alt="Entretien Cuir">
+          </div>
+          <div class="brand-article__content">
+            <span class="brand-article__date">10 Janvier 2025</span>
+            <h3 class="brand-article__title">Conseils d'Entretien pour vos Articles en Cuir</h3>
+            <p class="brand-article__excerpt">
+              Apprenez à préserver la beauté de vos sacs et accessoires en cuir. 
+              Nos astuces pour un entretien simple et efficace au quotidien.
+            </p>
+            <a href="#" class="brand-article__link" onclick="showToast('Article complet bientôt disponible', 'info'); return false;">
+              Lire la suite <i data-lucide="arrow-right"></i>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="brand-section brand-section--dark">
+    <div class="brand-section__container">
+      <div class="brand-newsletter">
+        <h2 class="brand-newsletter__title">Restez Informé</h2>
+        <p class="brand-newsletter__text">
+          Inscrivez-vous à notre newsletter pour recevoir nos actualités, 
+          nouvelles collections et offres exclusives.
+        </p>
+        <form class="brand-newsletter__form" onsubmit="handleNewsletterSubmit(event)">
+          <input type="email" class="brand-newsletter__input" placeholder="Votre adresse email" required>
+          <button type="submit" class="brand-newsletter__btn">
+            S'inscrire
+            <i data-lucide="send"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__container">
+      <div class="footer__grid">
+        <div class="footer__col">
+          <h4 class="footer__title">À Propos</h4>
+          <p class="footer__text">Votre boutique de luxe pour des pièces uniques et intemporelles.</p>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__title">Liens Rapides</h4>
+          <ul class="footer__links">
+            <li><a href="/">Boutique</a></li>
+            <li><a href="/brand.html">Notre Marque</a></li>
+            <li><a href="/account.html">Mon Compte</a></li>
+            <li><a href="/cart.html">Panier</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__title">Contact</h4>
+          <ul class="footer__links">
+            <li><a href="mailto:contact@boutique.com">contact@boutique.com</a></li>
+            <li><a href="tel:+1234567890">+1 234 567 890</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; 2025 Boutique Luxe. Tous droits réservés.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-bottom-nav">
+    <div class="mobile-bottom-nav__items">
+      <a href="/" class="mobile-bottom-nav__item">
+        <i data-lucide="home"></i>
+        <span class="mobile-bottom-nav__label">Accueil</span>
+      </a>
+      <a href="/brand.html" class="mobile-bottom-nav__item mobile-bottom-nav__item--active">
+        <i data-lucide="info"></i>
+        <span class="mobile-bottom-nav__label">Marque</span>
+      </a>
+      <a href="/account.html" class="mobile-bottom-nav__item">
+        <i data-lucide="user"></i>
+        <span class="mobile-bottom-nav__label">Profil</span>
+      </a>
+      <a href="/cart.html" class="mobile-bottom-nav__item" style="position: relative;">
+        <i data-lucide="shopping-cart"></i>
+        <span class="mobile-bottom-nav__label">Panier</span>
+        <span class="mobile-bottom-nav__badge" id="mobile-cart-badge" style="display: none;">0</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/brand.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Mobile menu
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+    const menuClose = document.getElementById('mobile-menu-close');
+    
+    function openMenu() {
+      hamburger?.classList.add('hamburger--active');
+      mobileMenu.classList.add('mobile-menu--active');
+      menuOverlay.classList.add('menu-overlay--active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeMenu() {
+      hamburger?.classList.remove('hamburger--active');
+      mobileMenu.classList.remove('mobile-menu--active');
+      menuOverlay.classList.remove('menu-overlay--active');
+      document.body.style.overflow = '';
+    }
+    
+    hamburger?.addEventListener('click', openMenu);
+    menuClose?.addEventListener('click', closeMenu);
+    menuOverlay?.addEventListener('click', closeMenu);
+    
+    // Search overlay
+    const searchIcon = document.querySelector('.navbar__icon--search');
+    const searchOverlay = document.getElementById('search-overlay');
+    const searchClose = document.querySelector('.search-overlay__close');
+    
+    searchIcon?.addEventListener('click', () => {
+      searchOverlay.classList.add('search-overlay--active');
+      searchOverlay.querySelector('input').focus();
+    });
+    
+    searchClose?.addEventListener('click', () => {
+      searchOverlay.classList.remove('search-overlay--active');
+    });
+    
+    // Newsletter handler
+    function handleNewsletterSubmit(e) {
+      e.preventDefault();
+      showToast('Merci pour votre inscription !', 'success');
+      e.target.reset();
+    }
+    
+    // Toast function
+    function showToast(message, type = 'success') {
+      const container = document.querySelector('.toast-container');
+      if (!container) return;
+      
+      const toast = document.createElement('div');
+      toast.className = `toast toast--${type}`;
+      toast.textContent = message;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => toast.classList.add('toast--visible'), 10);
+      setTimeout(() => {
+        toast.classList.remove('toast--visible');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

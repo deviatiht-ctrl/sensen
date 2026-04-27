@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de bord - Admin</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <button class="admin-sidebar__toggle" id="sidebar-toggle">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="admin-sidebar__logo">Admin</div>
+      <nav class="admin-sidebar__nav">
+        <a href="/admin/" class="admin-sidebar__link admin-sidebar__link--active">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/products.html" class="admin-sidebar__link">
+          <i data-lucide="package"></i>
+          <span>Produits</span>
+        </a>
+        <a href="/admin/orders.html" class="admin-sidebar__link">
+          <i data-lucide="shopping-cart"></i>
+          <span>Commandes</span>
+        </a>
+        <a href="/admin/customers.html" class="admin-sidebar__link">
+          <i data-lucide="users"></i>
+          <span>Clients</span>
+        </a>
+        <a href="/admin/messages.html" class="admin-sidebar__link">
+          <i data-lucide="message-circle"></i>
+          <span>Messages</span>
+          <span class="admin-sidebar__badge" id="unread-badge" style="display: none; margin-left: auto; background: var(--color-rose); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px;">0</span>
+        </a>
+        <a href="/admin/settings.html" class="admin-sidebar__link">
+          <i data-lucide="settings"></i>
+          <span>Paramètres</span>
+        </a>
+        <a href="/" class="admin-sidebar__link" style="margin-top: auto;">
+          <i data-lucide="arrow-left"></i>
+          <span>Retour au site</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">Tableau de bord</h1>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__label">Total revenus</div>
+          <div class="stat-card__value" data-stat="revenue">0 USD</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Commandes aujourd'hui</div>
+          <div class="stat-card__value" data-stat="orders-today">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Produits actifs</div>
+          <div class="stat-card__value" data-stat="products">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Clients inscrits</div>
+          <div class="stat-card__value" data-stat="customers">0</div>
+        </div>
+      </div>
+
+      <!-- Low Stock Alert -->
+      <div class="low-stock-alert" style="display: none; margin-bottom: 32px; padding: 16px; background: rgba(201, 169, 110, 0.1); border: 1px solid var(--color-gold);">
+        <h3 style="font-family: var(--font-display); font-size: 18px; margin-bottom: 12px; color: var(--color-gold);">
+          <i data-lucide="alert-circle" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 8px;"></i>
+          Stock faible
+        </h3>
+        <div class="low-stock-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Low stock items loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div style="background: var(--color-bg); border: 1px solid var(--color-border);">
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--color-border);">
+          <h2 style="font-family: var(--font-display); font-weight: 500; font-size: 20px;">Commandes récentes</h2>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table recent-orders">
+            <thead>
+              <tr>
+                <th>N° Commande</th>
+                <th>Client</th>
+                <th>Total</th>
+                <th>Statut</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Orders loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/admin/dashboard.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Mobile sidebar toggle
+    const sidebar = document.querySelector('.admin-sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    
+    sidebarToggle?.addEventListener('click', () => {
+      sidebar?.classList.toggle('admin-sidebar--open');
+    });
+  </script>
+</body>
+</html>

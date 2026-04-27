@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon compte</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/auth.css">
+  <style>
+    .account-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 48px;
+      max-width: 1200px;
+      margin: 48px auto;
+      padding: 0 24px;
+    }
+    
+    @media (max-width: 768px) {
+      .account-layout {
+        grid-template-columns: 1fr;
+        margin: 24px auto;
+      }
+    }
+    
+    .account-sidebar {
+      border-right: 1px solid var(--color-border);
+      padding-right: 24px;
+    }
+    
+    @media (max-width: 768px) {
+      .account-sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+        padding-right: 0;
+        padding-bottom: 24px;
+      }
+    }
+    
+    .account-tab {
+      display: block;
+      width: 100%;
+      padding: 12px 0;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      color: var(--color-text-secondary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.3s;
+      border-bottom: 1px solid transparent;
+    }
+    
+    .account-tab:hover {
+      color: var(--color-text);
+    }
+    
+    .account-tab--active {
+      color: var(--color-text);
+      border-bottom-color: var(--color-accent);
+    }
+    
+    .account-panel {
+      display: none;
+    }
+    
+    .account-panel--active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .account-panel h2 {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .order-card {
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+    }
+    
+    .order-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      cursor: pointer;
+    }
+    
+    .order-header__left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .order-number {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 16px;
+    }
+    
+    .order-date {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+    }
+    
+    .order-header__right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .order-total {
+      font-weight: 400;
+      font-size: 15px;
+    }
+    
+    .order-toggle {
+      transition: transform 0.3s;
+    }
+    
+    .order-card--open .order-toggle {
+      transform: rotate(180deg);
+    }
+    
+    .order-details {
+      display: none;
+      padding: 0 16px 16px;
+      border-top: 1px solid var(--color-border);
+    }
+    
+    .order-products {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    
+    .order-product {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+    
+    .order-product__name {
+      font-weight: 400;
+    }
+    
+    .order-product__meta {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+    
+    .order-product__price {
+      font-size: 14px;
+    }
+    
+    .order-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding-top: 16px;
+    }
+    
+    @media (max-width: 768px) {
+      .order-info {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .order-info__label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 4px;
+    }
+    
+    .order-info__value {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .orders-empty {
+      text-align: center;
+      padding: 48px 0;
+      color: var(--color-text-secondary);
+    }
+    
+    .account-logout {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-error);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar__left">
+      <a href="/">
+        <img src="/assets/img/logo-placeholder.svg" alt="Logo" class="navbar__logo" id="navbar-logo">
+      </a>
+    </div>
+    <div class="navbar__center">
+      <a href="/" class="store-name" id="store-name">NOM DU STORE</a>
+    </div>
+    <div class="navbar__right">
+      <a href="/admin/" class="navbar__admin" id="admin-link">Admin</a>
+      <a href="/brand.html" class="navbar__link navbar__link--brand">Marque</a>
+      <div class="navbar__icon navbar__icon--search">
+        <i data-lucide="search"></i>
+      </div>
+      <div class="navbar__icon navbar__icon--user">
+        <a href="/login.html">
+          <i data-lucide="user"></i>
+        </a>
+      </div>
+      <div class="navbar__icon">
+        <a href="/cart.html">
+          <i data-lucide="shopping-bag"></i>
+          <span class="navbar__badge" id="cart-badge" style="display: none;">0</span>
+        </a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="search-overlay">
+    <input type="text" class="search-overlay__input" placeholder="Rechercher un produit...">
+    <div class="search-overlay__close">
+      <i data-lucide="x"></i>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="menu-overlay" id="menu-overlay"></div>
+  <div class="mobile-menu" id="mobile-menu">
+    <div class="mobile-menu__close" id="mobile-menu-close">
+      <i data-lucide="x"></i>
+    </div>
+    <nav class="mobile-menu__nav">
+      <a href="/?category=vetements">Vêtements</a>
+      <a href="/?category=parfums">Parfums</a>
+      <a href="/?category=accessoires">Accessoires</a>
+      <a href="/?category=nouveautes">Nouveautés</a>
+      <a href="/?category=soldes">Soldes</a>
+      <a href="/account.html">Mon compte</a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <main class="page-content">
+    <div class="account-layout">
+      <!-- Sidebar -->
+      <aside class="account-sidebar">
+        <button class="account-tab account-tab--active" data-tab="orders">Mes commandes</button>
+        <button class="account-tab" data-tab="profile">Mes informations</button>
+        <button class="account-tab account-logout">Déconnexion</button>
+      </aside>
+
+      <!-- Content -->
+      <div class="account-content">
+        <!-- Orders Panel -->
+        <div class="account-panel account-panel--active" id="orders">
+          <h2>Mes commandes</h2>
+          <div class="orders-list">
+            <!-- Orders loaded dynamically -->
+          </div>
+        </div>
+
+        <!-- Profile Panel -->
+        <div class="account-panel" id="profile">
+          <h2>Mes informations</h2>
+          <form id="profile-form" class="auth-form" style="max-width: 400px;">
+            <div class="auth-form__group">
+              <label class="auth-form__label">Nom complet</label>
+              <input type="text" class="auth-form__input" name="full_name" id="profile-name" required>
+            </div>
+            <div class="auth-form__group">
+              <label class="auth-form__label">Email</label>
+              <input type="email" class="auth-form__input" name="email" id="profile-email" readonly style="background: var(--color-bg-soft);">
+            </div>
+            <div class="auth-form__group">
+              <label class="auth-form__label">Téléphone</label>
+              <input type="tel" class="auth-form__input" name="phone" id="profile-phone">
+            </div>
+            <div class="auth-form__group">
+              <label class="auth-form__label">Adresse</label>
+              <input type="text" class="auth-form__input" name="address" id="profile-address">
+            </div>
+            <div class="auth-form__group">
+              <label class="auth-form__label">Ville</label>
+              <input type="text" class="auth-form__input" name="city" id="profile-city">
+            </div>
+            <button type="submit" class="auth-form__submit" style="margin-top: 8px;">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-bottom-nav">
+    <div class="mobile-bottom-nav__items">
+      <a href="/" class="mobile-bottom-nav__item">
+        <i data-lucide="home"></i>
+        <span class="mobile-bottom-nav__label">Accueil</span>
+      </a>
+      <a href="/account.html" class="mobile-bottom-nav__item mobile-bottom-nav__item--active">
+        <i data-lucide="shopping-bag"></i>
+        <span class="mobile-bottom-nav__label">Commandes</span>
+        <span class="mobile-bottom-nav__badge" id="orders-badge" style="display: none;">0</span>
+      </a>
+      <a href="/account.html" class="mobile-bottom-nav__item mobile-bottom-nav__item--active">
+        <i data-lucide="user"></i>
+        <span class="mobile-bottom-nav__label">Profil</span>
+      </a>
+      <a href="/cart.html" class="mobile-bottom-nav__item" style="position: relative;">
+        <i data-lucide="shopping-cart"></i>
+        <span class="mobile-bottom-nav__label">Panier</span>
+        <span class="mobile-bottom-nav__badge" id="mobile-cart-badge" style="display: none;">0</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Chat Widget -->
+  <div class="chat-widget" id="chat-widget">
+    <button class="chat-widget__toggle" id="chat-toggle">
+      <i data-lucide="message-circle"></i>
+    </button>
+    <div class="chat-widget__panel" id="chat-panel">
+      <div class="chat-widget__header">
+        <h3 class="chat-widget__title">Support</h3>
+        <button class="chat-widget__close" id="chat-close">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="chat-widget__messages" id="chat-messages">
+        <div class="chat-message chat-message--received">
+          <p>Bonjour ! Comment puis-je vous aider aujourd'hui ?</p>
+          <span class="chat-message__time">Maintenant</span>
+        </div>
+      </div>
+      <div class="chat-widget__input-area">
+        <input type="text" class="chat-widget__input" id="chat-input" placeholder="Écrivez votre message...">
+        <button class="chat-widget__send" id="chat-send">
+          <i data-lucide="send"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Detail Modal -->
+  <div class="order-modal" id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+    <div class="order-modal__content" style="background: var(--color-bg); width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--color-border);">
+      <div class="order-modal__header" style="padding: 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-family: var(--font-display); font-size: 22px;">Détails de la commande</h3>
+        <button id="close-order-modal" style="background: none; border: none; cursor: pointer;">
+          <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+        </button>
+      </div>
+      <div class="order-modal__body" id="order-modal-body" style="padding: 20px;">
+        <!-- Order details loaded dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/account.js"></script>
+  <script>
+    // Chat widget functionality
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatPanel = document.getElementById('chat-panel');
+    const chatClose = document.getElementById('chat-close');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const chatMessages = document.getElementById('chat-messages');
+
+    chatToggle?.addEventListener('click', () => {
+      chatPanel?.classList.toggle('chat-widget__panel--open');
+      if (chatPanel?.classList.contains('chat-widget__panel--open')) {
+        loadChatMessages();
+      }
+    });
+
+    chatClose?.addEventListener('click', () => {
+      chatPanel?.classList.remove('chat-widget__panel--open');
+    });
+
+    async function loadChatMessages() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        const { data: messages } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+        
+        if (messages && messages.length > 0) {
+          chatMessages.innerHTML = '';
+          messages.forEach(msg => {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-message chat-message--${msg.sender === 'client' ? 'sent' : 'received'}`;
+            msgDiv.innerHTML = `<p>${msg.message}</p><span class="chat-message__time">${new Date(msg.created_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>`;
+            chatMessages.appendChild(msgDiv);
+          });
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      } catch (e) {
+        console.log('Could not load messages');
+      }
+    }
+
+    async function sendMessage() {
+      const text = chatInput?.value.trim();
+      if (!text) return;
+
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-message chat-message--sent';
+      userMsg.innerHTML = `<p>${text}</p><span class="chat-message__time">Maintenant</span>`;
+      chatMessages?.appendChild(userMsg);
+      chatInput.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('messages').insert({
+            user_id: user.id,
+            message: text,
+            sender: 'client'
+          });
+        }
+      } catch (e) {
+        console.log('Message saved locally');
+      }
+    }
+
+    chatSend?.addEventListener('click', sendMessage);
+    chatInput?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // Order modal functionality
+    const orderModal = document.getElementById('order-modal');
+    const closeOrderModal = document.getElementById('close-order-modal');
+    const orderModalBody = document.getElementById('order-modal-body');
+
+    closeOrderModal?.addEventListener('click', () => {
+      orderModal.style.display = 'none';
+    });
+
+    orderModal?.addEventListener('click', (e) => {
+      if (e.target === orderModal) orderModal.style.display = 'none';
+    });
+
+    // Make viewOrderDetails globally accessible
+    window.viewOrderDetails = async function(orderId) {
+      try {
+        const { data: order } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .eq('id', orderId)
+          .single();
+        
+        if (!order) return;
+        
+        const statusLabels = {
+          pending: 'En attente',
+          confirmed: 'Confirmée',
+          processing: 'En préparation',
+          shipped: 'Expédiée',
+          delivered: 'Livrée',
+          cancelled: 'Annulée'
+        };
+        
+        orderModalBody.innerHTML = `
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px;">Commande</div>
+            <div style="font-family: var(--font-display); font-size: 20px;">${order.order_number}</div>
+          </div>
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px;">Statut</div>
+            <span class="status-badge status-badge--${order.status}" style="display: inline-flex; padding: 6px 12px; font-size: 13px; text-transform: uppercase;">${statusLabels[order.status] || order.status}</span>
+          </div>
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px;">Date</div>
+            <div>${new Date(order.created_at).toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'})}</div>
+          </div>
+          <div style="margin-bottom: 20px; padding: 16px; background: var(--color-bg-soft);">
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">Articles</div>
+            ${order.order_items?.map(item => `
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--color-border);">
+                <div>
+                  <div style="font-weight: 500;">${item.product_name}</div>
+                  <div style="font-size: 13px; color: var(--color-text-secondary);">Qté: ${item.quantity}</div>
+                </div>
+                <div>${item.price_usd * item.quantity} USD</div>
+              </div>
+            `).join('') || 'Aucun article'}
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 0; border-top: 2px solid var(--color-border); font-weight: 500; font-size: 18px;">
+            <span>Total</span>
+            <span>${order.total_usd} USD</span>
+          </div>
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--color-border);">
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">Adresse de livraison</div>
+            <div>${order.shipping_address || 'Non spécifiée'}</div>
+            <div>${order.shipping_city || ''}</div>
+          </div>
+        `;
+        
+        orderModal.style.display = 'flex';
+        lucide.createIcons();
+      } catch (e) {
+        console.error('Error loading order details:', e);
+      }
+    };
+
+    // Update mobile badges
+    async function updateMobileBadges() {
+      const user = await getCurrentUser();
+      let cartCount = 0;
+      let orderCount = 0;
+      
+      if (user) {
+        const { data: cartData } = await supabase
+          .from('cart_items')
+          .select('quantity')
+          .eq('user_id', user.id);
+        cartCount = cartData?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        
+        const { data: ordersData } = await supabase
+          .from('orders')
+          .select('id', { count: 'exact' })
+          .eq('customer_id', user.id);
+        orderCount = ordersData?.length || 0;
+      } else {
+        const cart = JSON.parse(localStorage.getItem('guest_cart') || '[]');
+        cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+      }
+      
+      const cartBadge = document.getElementById('mobile-cart-badge');
+      const ordersBadge = document.getElementById('orders-badge');
+      
+      if (cartBadge) {
+        cartBadge.textContent = cartCount;
+        cartBadge.style.display = cartCount > 0 ? 'flex' : 'none';
+      }
+      if (ordersBadge) {
+        ordersBadge.textContent = orderCount;
+        ordersBadge.style.display = orderCount > 0 ? 'flex' : 'none';
+      }
+    }
+    
+    updateMobileBadges();
+
+    lucide.createIcons();
+    
+    // Mobile menu
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+    const mobileMenuClose = document.getElementById('mobile-menu-close');
+    
+    function toggleMenu() {
+      hamburger.classList.toggle('hamburger--active');
+      mobileMenu.classList.toggle('mobile-menu--active');
+      menuOverlay.classList.toggle('menu-overlay--active');
+    }
+    
+    hamburger?.addEventListener('click', toggleMenu);
+    mobileMenuClose?.addEventListener('click', toggleMenu);
+    menuOverlay?.addEventListener('click', toggleMenu);
+    
+    // Load store name
+    async function loadStoreName() {
+      const settings = await fetchStoreSettings();
+      const storeNameEl = document.getElementById('store-name');
+      const navbarLogo = document.getElementById('navbar-logo');
+      
+      if (storeNameEl && settings.store_name) {
+        storeNameEl.textContent = settings.store_name;
+        document.title = `Mon compte - ${settings.store_name}`;
+      }
+      
+      if (navbarLogo && settings.logo_url) {
+        navbarLogo.src = settings.logo_url;
+      }
+    }
+    
+    loadStoreName();
+  </script>
+</body>
+</html>

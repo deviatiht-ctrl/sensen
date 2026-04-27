@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produits - Admin</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <button class="admin-sidebar__toggle" id="sidebar-toggle">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="admin-sidebar__logo">Admin</div>
+      <nav class="admin-sidebar__nav">
+        <a href="/admin/" class="admin-sidebar__link">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/products.html" class="admin-sidebar__link admin-sidebar__link--active">
+          <i data-lucide="package"></i>
+          <span>Produits</span>
+        </a>
+        <a href="/admin/orders.html" class="admin-sidebar__link">
+          <i data-lucide="shopping-cart"></i>
+          <span>Commandes</span>
+        </a>
+        <a href="/admin/customers.html" class="admin-sidebar__link">
+          <i data-lucide="users"></i>
+          <span>Clients</span>
+        </a>
+        <a href="/admin/messages.html" class="admin-sidebar__link">
+          <i data-lucide="message-circle"></i>
+          <span>Messages</span>
+          <span class="admin-sidebar__badge" id="sidebar-unread-badge" style="display: none; margin-left: auto; background: var(--color-rose); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px;">0</span>
+        </a>
+        <a href="/admin/settings.html" class="admin-sidebar__link">
+          <i data-lucide="settings"></i>
+          <span>Paramètres</span>
+        </a>
+        <a href="/" class="admin-sidebar__link" style="margin-top: auto;">
+          <i data-lucide="arrow-left"></i>
+          <span>Retour au site</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">Produits</h1>
+        <button class="admin-btn admin-btn--primary" onclick="openProductModal()">
+          <i data-lucide="plus"></i>
+          <span>Ajouter un produit</span>
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="admin-filters">
+        <div class="admin-filters__search">
+          <input type="text" placeholder="Rechercher un produit...">
+        </div>
+        <select class="admin-filters__select admin-filters__category">
+          <option value="all">Toutes les catégories</option>
+          <option value="vetements">Vêtements</option>
+          <option value="parfums">Parfums</option>
+          <option value="accessoires">Accessoires</option>
+          <option value="nouveautes">Nouveautés</option>
+          <option value="soldes">Soldes</option>
+        </select>
+        <select class="admin-filters__select admin-filters__status">
+          <option value="all">Tous les statuts</option>
+          <option value="active">Actif</option>
+          <option value="inactive">Inactif</option>
+        </select>
+      </div>
+
+      <!-- Products Table -->
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Photo</th>
+              <th>Nom</th>
+              <th>Catégorie</th>
+              <th>Prix</th>
+              <th>Stock</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Products loaded dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Product Modal (Slide Panel) -->
+  <div class="slide-panel" id="product-panel">
+    <div class="slide-panel__header">
+      <h2 class="slide-panel__title">Ajouter un produit</h2>
+      <button class="slide-panel__close" onclick="closeProductModal()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="slide-panel__content">
+      <form id="product-form" class="admin-form">
+        <div class="admin-form__group">
+          <label class="admin-form__label">Nom du produit *</label>
+          <input type="text" class="admin-form__input" name="name" id="product-name" required>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Catégorie *</label>
+          <select class="admin-form__select" name="category" id="product-category" required>
+            <option value="vetements">Vêtements</option>
+            <option value="parfums">Parfums</option>
+            <option value="accessoires">Accessoires</option>
+            <option value="nouveautes">Nouveautés</option>
+            <option value="soldes">Soldes</option>
+          </select>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Description</label>
+          <textarea class="admin-form__textarea" name="description" id="product-description" rows="4"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="admin-form__group">
+            <label class="admin-form__label">Prix (USD) *</label>
+            <input type="number" class="admin-form__input" name="price" id="product-price" step="0.01" min="0" required>
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Prix soldé (optionnel)</label>
+            <input type="number" class="admin-form__input" name="sale_price" id="product-sale-price" step="0.01" min="0">
+          </div>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Stock *</label>
+          <input type="number" class="admin-form__input" name="stock" id="product-stock" min="0" required>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Tailles disponibles</label>
+          <div class="tags-input sizes-input">
+            <div class="tags-input__tags sizes-tags"></div>
+            <input type="text" class="tags-input__field" placeholder="Ajouter une taille (Entrée pour valider)">
+          </div>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Photos</label>
+          <div class="image-upload">
+            <svg class="image-upload__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="M21 15l-5-5L5 21"></path>
+            </svg>
+            <p class="image-upload__text">Glissez des images ici ou cliquez pour sélectionner</p>
+            <input type="file" id="product-images" class="image-upload__input" accept="image/*" multiple>
+          </div>
+          <div class="image-thumbnails">
+            <!-- Thumbnails loaded dynamically -->
+          </div>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__checkbox">
+            <input type="checkbox" id="product-status" checked>
+            <span>Produit actif</span>
+          </label>
+        </div>
+
+        <button type="submit" class="admin-btn admin-btn--primary" style="width: 100%; margin-top: 24px;">
+          Enregistrer
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/admin/products.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Mobile sidebar toggle
+    const sidebar = document.querySelector('.admin-sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    
+    sidebarToggle?.addEventListener('click', () => {
+      sidebar?.classList.toggle('admin-sidebar--open');
+    });
+  </script>
+</body>
+</html>

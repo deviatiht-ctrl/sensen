@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commandes - Admin</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <button class="admin-sidebar__toggle" id="sidebar-toggle">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="admin-sidebar__logo">Admin</div>
+      <nav class="admin-sidebar__nav">
+        <a href="/admin/" class="admin-sidebar__link">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/products.html" class="admin-sidebar__link">
+          <i data-lucide="package"></i>
+          <span>Produits</span>
+        </a>
+        <a href="/admin/orders.html" class="admin-sidebar__link admin-sidebar__link--active">
+          <i data-lucide="shopping-cart"></i>
+          <span>Commandes</span>
+        </a>
+        <a href="/admin/customers.html" class="admin-sidebar__link">
+          <i data-lucide="users"></i>
+          <span>Clients</span>
+        </a>
+        <a href="/admin/messages.html" class="admin-sidebar__link">
+          <i data-lucide="message-circle"></i>
+          <span>Messages</span>
+          <span class="admin-sidebar__badge" id="sidebar-unread-badge" style="display: none; margin-left: auto; background: var(--color-rose); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px;">0</span>
+        </a>
+        <a href="/admin/settings.html" class="admin-sidebar__link">
+          <i data-lucide="settings"></i>
+          <span>Paramètres</span>
+        </a>
+        <a href="/" class="admin-sidebar__link" style="margin-top: auto;">
+          <i data-lucide="arrow-left"></i>
+          <span>Retour au site</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">Commandes</h1>
+      </div>
+
+      <!-- Filters -->
+      <div class="admin-filters">
+        <div class="admin-filters__search">
+          <input type="text" placeholder="Rechercher une commande...">
+        </div>
+        <select class="admin-filters__select admin-filters__status">
+          <option value="all">Tous les statuts</option>
+          <option value="pending">En attente</option>
+          <option value="confirmed">Confirmée</option>
+          <option value="processing">En préparation</option>
+          <option value="shipped">Expédiée</option>
+          <option value="delivered">Livrée</option>
+          <option value="cancelled">Annulée</option>
+        </select>
+      </div>
+
+      <!-- Orders Table -->
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>N° Commande</th>
+              <th>Client</th>
+              <th>Produits</th>
+              <th>Total</th>
+              <th>Paiement</th>
+              <th>Statut</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Orders loaded dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Order Modal (Slide Panel) -->
+  <div class="slide-panel" id="order-panel">
+    <div class="slide-panel__header">
+      <h2 class="slide-panel__title order-modal__number">Commande</h2>
+      <button class="slide-panel__close" onclick="closeOrderModal()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="slide-panel__content">
+      <div style="margin-bottom: 24px;">
+        <span class="order-modal__date" style="color: var(--color-text-secondary); font-size: 13px;"></span>
+      </div>
+
+      <!-- Customer Info -->
+      <div style="margin-bottom: 24px; padding: 16px; background: var(--color-bg-soft);">
+        <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px;">Client</h3>
+        <div class="order-customer__name" style="font-weight: 400; margin-bottom: 4px;"></div>
+        <div class="order-customer__email" style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px;"></div>
+        <div class="order-customer__phone" style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;"></div>
+        <div class="order-customer__address" style="font-size: 13px; line-height: 1.5;"></div>
+        <div class="order-customer__city" style="font-size: 13px; color: var(--color-text-secondary);"></div>
+      </div>
+
+      <!-- Products -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px;">Articles</h3>
+        <div class="order-products-list" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Products loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- Payment -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px;">Paiement</h3>
+        <div style="font-size: 13px;">
+          Méthode: <span class="order-payment__method" style="font-weight: 400;"></span><br>
+          Statut: <span class="order-payment__status"></span>
+        </div>
+      </div>
+
+      <!-- Totals -->
+      <div style="margin-bottom: 24px; padding: 16px; background: var(--color-bg-soft);">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+          <span>Sous-total</span>
+          <span class="order-total__subtotal"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+          <span>Livraison</span>
+          <span class="order-total__shipping"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-weight: 500;">
+          <span>Total</span>
+          <span class="order-total__total"></span>
+        </div>
+      </div>
+
+      <!-- Status Update -->
+      <div style="margin-bottom: 24px;">
+        <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em;">Statut de la commande</label>
+        <select class="admin-form__select" id="order-status" style="width: 100%;">
+          <option value="pending">En attente</option>
+          <option value="confirmed">Confirmée</option>
+          <option value="processing">En préparation</option>
+          <option value="shipped">Expédiée</option>
+          <option value="delivered">Livrée</option>
+          <option value="cancelled">Annulée</option>
+        </select>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <button class="admin-btn admin-btn--secondary btn--mark-shipped">
+          Marquer comme expédiée
+        </button>
+      </div>
+
+      <!-- Notes -->
+      <div>
+        <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em;">Notes</label>
+        <textarea class="admin-form__textarea" id="order-notes" rows="3" style="width: 100%;"></textarea>
+        <button class="admin-btn admin-btn--secondary btn--save-notes" style="margin-top: 8px;">
+          Enregistrer les notes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/admin/orders.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Mobile sidebar toggle
+    const sidebar = document.querySelector('.admin-sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    
+    sidebarToggle?.addEventListener('click', () => {
+      sidebar?.classList.toggle('admin-sidebar--open');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paramètres - Admin</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/admin.css">
+  <style>
+    .settings-section {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      margin-bottom: 24px;
+    }
+    .settings-section__header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .settings-section__title {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 18px;
+    }
+    .settings-section__content {
+      padding: 24px;
+    }
+    .logo-preview {
+      width: 120px;
+      height: 120px;
+      border: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .logo-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .logo-upload {
+      border: 2px dashed var(--color-border);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+    .logo-upload:hover {
+      border-color: var(--color-text-muted);
+    }
+    .admin-user-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .admin-user-item:last-child {
+      border-bottom: none;
+    }
+    .admin-user-email {
+      font-size: 14px;
+    }
+    .admin-user-remove {
+      background: none;
+      border: none;
+      color: var(--color-error);
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.3s;
+    }
+    .admin-user-remove:hover {
+      opacity: 1;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <button class="admin-sidebar__toggle" id="sidebar-toggle">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="admin-sidebar__logo">Admin</div>
+      <nav class="admin-sidebar__nav">
+        <a href="/admin/" class="admin-sidebar__link">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/products.html" class="admin-sidebar__link">
+          <i data-lucide="package"></i>
+          <span>Produits</span>
+        </a>
+        <a href="/admin/orders.html" class="admin-sidebar__link">
+          <i data-lucide="shopping-cart"></i>
+          <span>Commandes</span>
+        </a>
+        <a href="/admin/customers.html" class="admin-sidebar__link">
+          <i data-lucide="users"></i>
+          <span>Clients</span>
+        </a>
+        <a href="/admin/messages.html" class="admin-sidebar__link">
+          <i data-lucide="message-circle"></i>
+          <span>Messages</span>
+          <span class="admin-sidebar__badge" id="sidebar-unread-badge" style="display: none; margin-left: auto; background: var(--color-rose); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px;">0</span>
+        </a>
+        <a href="/admin/settings.html" class="admin-sidebar__link admin-sidebar__link--active">
+          <i data-lucide="settings"></i>
+          <span>Paramètres</span>
+        </a>
+        <a href="/" class="admin-sidebar__link" style="margin-top: auto;">
+          <i data-lucide="arrow-left"></i>
+          <span>Retour au site</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">Paramètres</h1>
+      </div>
+
+      <!-- Store Info -->
+      <div class="settings-section">
+        <div class="settings-section__header">
+          <h2 class="settings-section__title">Informations du store</h2>
+        </div>
+        <div class="settings-section__content">
+          <!-- Logo Upload -->
+          <div style="margin-bottom: 24px;">
+            <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em;">Logo</label>
+            <div class="logo-preview">
+              <img src="/assets/img/logo-placeholder.svg" alt="Logo" id="logo-preview-img">
+            </div>
+            <div class="logo-upload" id="logo-upload-zone">
+              <p style="font-size: 13px; color: var(--color-text-secondary);">Cliquez pour télécharger un nouveau logo</p>
+              <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+            </div>
+          </div>
+
+          <form id="store-info-form">
+            <div class="admin-form__group">
+              <label class="admin-form__label">Nom du store</label>
+              <input type="text" class="admin-form__input" id="store-name" name="store_name" required>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label">Description</label>
+              <textarea class="admin-form__textarea" id="store-description" name="description" rows="3"></textarea>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label">Email de contact</label>
+              <input type="email" class="admin-form__input" id="store-email" name="contact_email">
+            </div>
+            <button type="submit" class="admin-btn admin-btn--primary">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Payment Settings -->
+      <div class="settings-section">
+        <div class="settings-section__header">
+          <h2 class="settings-section__title">Paiement</h2>
+        </div>
+        <div class="settings-section__content">
+          <form id="payment-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="admin-form__group">
+                <label class="admin-form__label">Numéro MonCash</label>
+                <input type="tel" class="admin-form__input" id="moncash-number" name="moncash_number">
+              </div>
+              <div class="admin-form__group">
+                <label class="admin-form__label">Numéro NatCash</label>
+                <input type="tel" class="admin-form__input" id="natcash-number" name="natcash_number">
+              </div>
+            </div>
+            
+            <div class="admin-form__group" style="margin-top: 16px;">
+              <label class="admin-form__label">Coordonnées bancaires</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <input type="text" class="admin-form__input" id="bank-name" placeholder="Nom de la banque">
+                <input type="text" class="admin-form__input" id="bank-account" placeholder="Numéro de compte">
+              </div>
+              <input type="text" class="admin-form__input" id="bank-owner" placeholder="Titulaire du compte" style="margin-top: 8px;">
+            </div>
+
+            <div class="admin-form__group" style="margin-top: 16px;">
+              <label class="admin-form__checkbox">
+                <input type="checkbox" id="cod-enabled" checked>
+                <span>Activer le paiement à la livraison</span>
+              </label>
+            </div>
+
+            <button type="submit" class="admin-btn admin-btn--primary" style="margin-top: 16px;">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Shipping Settings -->
+      <div class="settings-section">
+        <div class="settings-section__header">
+          <h2 class="settings-section__title">Livraison</h2>
+        </div>
+        <div class="settings-section__content">
+          <form id="shipping-form">
+            <div class="admin-form__group">
+              <label class="admin-form__label">Frais de livraison standard (USD)</label>
+              <input type="number" class="admin-form__input" id="shipping-fee" name="shipping_fee" step="0.01" min="0">
+            </div>
+
+            <div class="admin-form__group">
+              <label class="admin-form__checkbox">
+                <input type="checkbox" id="free-shipping-enabled">
+                <span>Livraison gratuite à partir de</span>
+              </label>
+              <input type="number" class="admin-form__input" id="free-shipping-threshold" name="free_shipping_threshold" step="0.01" min="0" disabled style="margin-top: 8px; width: 200px;">
+            </div>
+
+            <div class="admin-form__group">
+              <label class="admin-form__label">Zones de livraison</label>
+              <textarea class="admin-form__textarea" id="shipping-zones" name="shipping_zones" rows="3" placeholder="Ex: Port-au-Prince, Pétion-Ville, Delmas..."></textarea>
+            </div>
+
+            <button type="submit" class="admin-btn admin-btn--primary" style="margin-top: 8px;">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Admin Users -->
+      <div class="settings-section">
+        <div class="settings-section__header">
+          <h2 class="settings-section__title">Administrateurs</h2>
+        </div>
+        <div class="settings-section__content">
+          <form id="add-admin-form" style="margin-bottom: 24px;">
+            <div style="display: flex; gap: 8px;">
+              <input type="email" class="admin-form__input" id="new-admin-email" placeholder="Email du nouvel administrateur" required style="flex: 1;">
+              <button type="submit" class="admin-btn admin-btn--primary">Ajouter</button>
+            </div>
+          </form>
+
+          <div class="admin-users-list">
+            <!-- Admin users loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/admin/settings.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Mobile sidebar toggle
+    const sidebar = document.querySelector('.admin-sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    
+    sidebarToggle?.addEventListener('click', () => {
+      sidebar?.classList.toggle('admin-sidebar--open');
+    });
+  </script>
+</body>
+</html>

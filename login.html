@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/auth.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-container">
+      <!-- Header -->
+      <div class="auth-header">
+        <a href="/">
+          <img src="/assets/img/logo-placeholder.svg" alt="Logo" class="auth-logo" id="auth-logo">
+        </a>
+        <div class="auth-store-name" id="store-name">NOM DU STORE</div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab auth-tab--active" data-tab="login">Connexion</button>
+        <button class="auth-tab" data-tab="register">Créer un compte</button>
+      </div>
+
+      <!-- Messages -->
+      <div class="auth-message" id="auth-message" style="display: none;"></div>
+
+      <!-- Login Form -->
+      <form class="auth-form" id="login-form">
+        <div class="auth-form__group">
+          <label class="auth-form__label">Email</label>
+          <input type="email" class="auth-form__input" name="email" placeholder="votre@email.com" required>
+        </div>
+        <div class="auth-form__group">
+          <label class="auth-form__label">Mot de passe</label>
+          <div class="auth-form__password-wrapper">
+            <input type="password" class="auth-form__input" name="password" placeholder="••••••••" required>
+            <button type="button" class="auth-form__password-toggle" onclick="togglePassword(this)">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
+          <a href="#" class="auth-form__forgot" onclick="showForgotPassword()">Mot de passe oublié ?</a>
+        </div>
+        <button type="submit" class="auth-form__submit">Se connecter</button>
+      </form>
+
+      <!-- Register Form -->
+      <form class="auth-form" id="register-form" style="display: none;">
+        <div class="auth-form__group">
+          <label class="auth-form__label">Nom complet</label>
+          <input type="text" class="auth-form__input" name="full_name" placeholder="Jean Dupont" required>
+        </div>
+        <div class="auth-form__group">
+          <label class="auth-form__label">Email</label>
+          <input type="email" class="auth-form__input" name="email" placeholder="votre@email.com" required>
+        </div>
+        <div class="auth-form__group">
+          <label class="auth-form__label">Mot de passe</label>
+          <div class="auth-form__password-wrapper">
+            <input type="password" class="auth-form__input" name="password" placeholder="••••••••" required minlength="6">
+            <button type="button" class="auth-form__password-toggle" onclick="togglePassword(this)">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="auth-form__submit">Créer un compte</button>
+      </form>
+
+      <!-- Forgot Password Form -->
+      <form class="auth-form" id="forgot-form" style="display: none;">
+        <div class="auth-form__group">
+          <p style="margin-bottom: 16px; color: var(--color-text-secondary);">
+            Entrez votre email pour recevoir un lien de réinitialisation.
+          </p>
+          <label class="auth-form__label">Email</label>
+          <input type="email" class="auth-form__input" name="email" placeholder="votre@email.com" required>
+        </div>
+        <button type="submit" class="auth-form__submit">Envoyer le lien</button>
+        <button type="button" class="auth-form__forgot" onclick="showLogin()" style="margin-top: 16px; text-align: center; width: 100%;">
+          Retour à la connexion
+        </button>
+      </form>
+
+      <!-- Footer -->
+      <div class="auth-footer">
+        <a href="/">← Retour à la boutique</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Tab switching
+    const tabs = document.querySelectorAll('.auth-tab');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const forgotForm = document.getElementById('forgot-form');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        
+        tabs.forEach(t => t.classList.remove('auth-tab--active'));
+        tab.classList.add('auth-tab--active');
+        
+        loginForm.style.display = target === 'login' ? 'block' : 'none';
+        registerForm.style.display = target === 'register' ? 'block' : 'none';
+        forgotForm.style.display = 'none';
+      });
+    });
+    
+    function showForgotPassword() {
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'none';
+      forgotForm.style.display = 'block';
+      tabs.forEach(t => t.classList.remove('auth-tab--active'));
+    }
+    
+    function showLogin() {
+      loginForm.style.display = 'block';
+      registerForm.style.display = 'none';
+      forgotForm.style.display = 'none';
+      tabs[0].classList.add('auth-tab--active');
+      tabs[1].classList.remove('auth-tab--active');
+    }
+    
+    // Password visibility toggle
+    function togglePassword(btn) {
+      const input = btn.previousElementSibling;
+      const icon = btn.querySelector('i');
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+    
+    // Login form submission
+    loginForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(loginForm);
+      const submitBtn = loginForm.querySelector('.auth-form__submit');
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Connexion...';
+      
+      const result = await login(formData.get('email'), formData.get('password'));
+      
+      if (result.success) {
+        // Check for redirect parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect') || '/account.html';
+        window.location.href = redirect;
+      } else {
+        showMessage(result.error, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Se connecter';
+      }
+    });
+    
+    // Register form submission
+    registerForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(registerForm);
+      const submitBtn = registerForm.querySelector('.auth-form__submit');
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Création...';
+      
+      const result = await register(
+        formData.get('email'),
+        formData.get('password'),
+        formData.get('full_name')
+      );
+      
+      if (result.success) {
+        showMessage('Compte créé avec succès ! Vérifiez votre email.', 'success');
+        setTimeout(() => {
+          showLogin();
+        }, 2000);
+      } else {
+        showMessage(result.error, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Créer un compte';
+      }
+    });
+    
+    // Forgot password form submission
+    forgotForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(forgotForm);
+      const submitBtn = forgotForm.querySelector('.auth-form__submit');
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Envoi...';
+      
+      const result = await resetPassword(formData.get('email'));
+      
+      if (result.success) {
+        showMessage('Email envoyé ! Vérifiez votre boîte de réception.', 'success');
+        setTimeout(() => {
+          showLogin();
+        }, 3000);
+      } else {
+        showMessage(result.error, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Envoyer le lien';
+      }
+    });
+    
+    function showMessage(text, type) {
+      const msg = document.getElementById('auth-message');
+      msg.textContent = text;
+      msg.className = `auth-message auth-message--${type}`;
+      msg.style.display = 'block';
+    }
+    
+    // Load store name
+    async function loadStoreName() {
+      const settings = await fetchStoreSettings();
+      const storeNameEl = document.getElementById('store-name');
+      const authLogo = document.getElementById('auth-logo');
+      
+      if (storeNameEl && settings.store_name) {
+        storeNameEl.textContent = settings.store_name;
+        document.title = `Connexion - ${settings.store_name}`;
+      }
+      
+      if (authLogo && settings.logo_url) {
+        authLogo.src = settings.logo_url;
+      }
+    }
+    
+    loadStoreName();
+  </script>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-bottom-nav">
+    <div class="mobile-bottom-nav__items">
+      <a href="/" class="mobile-bottom-nav__item">
+        <i data-lucide="home"></i>
+        <span class="mobile-bottom-nav__label">Accueil</span>
+      </a>
+      <a href="/account.html" class="mobile-bottom-nav__item">
+        <i data-lucide="shopping-bag"></i>
+        <span class="mobile-bottom-nav__label">Commandes</span>
+      </a>
+      <a href="/account.html" class="mobile-bottom-nav__item mobile-bottom-nav__item--active">
+        <i data-lucide="user"></i>
+        <span class="mobile-bottom-nav__label">Profil</span>
+      </a>
+      <a href="/cart.html" class="mobile-bottom-nav__item" style="position: relative;">
+        <i data-lucide="shopping-cart"></i>
+        <span class="mobile-bottom-nav__label">Panier</span>
+        <span class="mobile-bottom-nav__badge" id="mobile-cart-badge" style="display: none;">0</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Chat Widget -->
+  <div class="chat-widget" id="chat-widget">
+    <button class="chat-widget__toggle" id="chat-toggle">
+      <i data-lucide="message-circle"></i>
+    </button>
+    <div class="chat-widget__panel" id="chat-panel">
+      <div class="chat-widget__header">
+        <h3 class="chat-widget__title">Support</h3>
+        <button class="chat-widget__close" id="chat-close">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="chat-widget__messages" id="chat-messages">
+        <div class="chat-message chat-message--received">
+          <p>Bonjour ! Comment puis-je vous aider aujourd'hui ?</p>
+          <span class="chat-message__time">Maintenant</span>
+        </div>
+      </div>
+      <div class="chat-widget__input-area">
+        <input type="text" class="chat-widget__input" id="chat-input" placeholder="Écrivez votre message...">
+        <button class="chat-widget__send" id="chat-send">
+          <i data-lucide="send"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Chat widget
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatPanel = document.getElementById('chat-panel');
+    const chatClose = document.getElementById('chat-close');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const chatMessages = document.getElementById('chat-messages');
+
+    chatToggle?.addEventListener('click', () => {
+      chatPanel?.classList.toggle('chat-widget__panel--open');
+    });
+
+    chatClose?.addEventListener('click', () => {
+      chatPanel?.classList.remove('chat-widget__panel--open');
+    });
+
+    async function sendMessage() {
+      const text = chatInput?.value.trim();
+      if (!text) return;
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-message chat-message--sent';
+      userMsg.innerHTML = `<p>${text}</p><span class="chat-message__time">Maintenant</span>`;
+      chatMessages?.appendChild(userMsg);
+      chatInput.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) await supabase.from('messages').insert({ user_id: user.id, message: text, sender: 'client' });
+      } catch (e) {}
+    }
+
+    chatSend?.addEventListener('click', sendMessage);
+    chatInput?.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+    // Update mobile cart badge
+    async function updateMobileCartBadge() {
+      const user = await getCurrentUser();
+      let count = 0;
+      if (user) {
+        const { data } = await supabase.from('cart_items').select('quantity').eq('user_id', user.id);
+        count = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+      } else {
+        const cart = JSON.parse(localStorage.getItem('guest_cart') || '[]');
+        count = cart.reduce((sum, item) => sum + item.quantity, 0);
+      }
+      const badge = document.getElementById('mobile-cart-badge');
+      if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
+    }
+    updateMobileCartBadge();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

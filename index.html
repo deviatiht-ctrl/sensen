@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boutique</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/boutique.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar__left">
+      <a href="/">
+        <img src="/assets/img/logo-placeholder.svg" alt="Logo" class="navbar__logo" id="navbar-logo">
+      </a>
+    </div>
+    <div class="navbar__center">
+      <a href="/" class="store-name" id="store-name">NOM DU STORE</a>
+    </div>
+    <div class="navbar__right">
+      <a href="/admin/" class="navbar__admin" id="admin-link">Admin</a>
+      <a href="/brand.html" class="navbar__link navbar__link--brand">Marque</a>
+      <div class="navbar__icon navbar__icon--search">
+        <i data-lucide="search"></i>
+      </div>
+      <div class="navbar__icon navbar__icon--user">
+        <a href="/login.html">
+          <i data-lucide="user"></i>
+        </a>
+      </div>
+      <div class="navbar__icon">
+        <a href="/cart.html">
+          <i data-lucide="shopping-bag"></i>
+          <span class="navbar__badge" id="cart-badge" style="display: none;">0</span>
+        </a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="search-overlay">
+    <input type="text" class="search-overlay__input" placeholder="Rechercher un produit...">
+    <div class="search-overlay__close">
+      <i data-lucide="x"></i>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="menu-overlay" id="menu-overlay"></div>
+  <div class="mobile-menu" id="mobile-menu">
+    <div class="mobile-menu__close" id="mobile-menu-close">
+      <i data-lucide="x"></i>
+    </div>
+    <nav class="mobile-menu__nav">
+      <a href="/brand.html">Notre Marque</a>
+      <a href="/?category=vetements">Vêtements</a>
+      <a href="/?category=parfums">Parfums</a>
+      <a href="/?category=accessoires">Accessoires</a>
+      <a href="/?category=nouveautes">Nouveautés</a>
+      <a href="/?category=soldes">Soldes</a>
+      <a href="/account.html">Mon compte</a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <main class="page-content page-content--fullwidth">
+    <!-- Filter Bar -->
+    <div class="filter-bar filter-bar--fullwidth">
+      <div class="filter-bar__categories">
+        <button class="filter-bar__category filter-bar__category--active" data-category="all">Tout</button>
+        <button class="filter-bar__category" data-category="vetements">Vêtements</button>
+        <button class="filter-bar__category" data-category="parfums">Parfums</button>
+        <button class="filter-bar__category" data-category="accessoires">Accessoires</button>
+        <button class="filter-bar__category" data-category="nouveautes">Nouveautés</button>
+        <button class="filter-bar__category" data-category="soldes">Soldes</button>
+      </div>
+      <div class="filter-bar__sort">
+        <span class="filter-bar__sort-label">Trier par</span>
+        <select class="filter-bar__sort-select">
+          <option value="newest">Plus récent</option>
+          <option value="price_asc">Prix croissant</option>
+          <option value="price_desc">Prix décroissant</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="product-grid product-grid--fullwidth" id="product-grid">
+      <!-- Products loaded dynamically -->
+    </div>
+
+    <!-- Load More -->
+    <div class="load-more container">
+      <button class="load-more__btn" id="load-more-btn">Charger plus</button>
+    </div>
+  </main>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/boutique.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Mobile menu toggle
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+    const mobileMenuClose = document.getElementById('mobile-menu-close');
+    
+    function toggleMenu() {
+      hamburger.classList.toggle('hamburger--active');
+      mobileMenu.classList.toggle('mobile-menu--active');
+      menuOverlay.classList.toggle('menu-overlay--active');
+    }
+    
+    hamburger?.addEventListener('click', toggleMenu);
+    mobileMenuClose?.addEventListener('click', toggleMenu);
+    menuOverlay?.addEventListener('click', toggleMenu);
+    
+    // Load store name
+    async function loadStoreName() {
+      const settings = await fetchStoreSettings();
+      const storeNameEl = document.getElementById('store-name');
+      const navbarLogo = document.getElementById('navbar-logo');
+      
+      if (storeNameEl && settings.store_name) {
+        storeNameEl.textContent = settings.store_name;
+        document.title = settings.store_name;
+      }
+      
+      if (navbarLogo && settings.logo_url) {
+        navbarLogo.src = settings.logo_url;
+      }
+    }
+    
+    loadStoreName();
+    
+    // Update cart badge on load
+    async function updateCartBadge() {
+      const user = await getCurrentUser();
+      let count = 0;
+      
+      if (user) {
+        const { data } = await supabase
+          .from('cart_items')
+          .select('quantity')
+          .eq('user_id', user.id);
+        count = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+      } else {
+        const cart = JSON.parse(localStorage.getItem('guest_cart') || '[]');
+        count = cart.reduce((sum, item) => sum + item.quantity, 0);
+      }
+      
+      const badge = document.getElementById('cart-badge');
+      if (badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+      }
+    }
+    
+    updateCartBadge();
+  </script>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-bottom-nav">
+    <div class="mobile-bottom-nav__items">
+      <a href="/" class="mobile-bottom-nav__item mobile-bottom-nav__item--active">
+        <i data-lucide="home"></i>
+        <span class="mobile-bottom-nav__label">Accueil</span>
+      </a>
+      <a href="/account.html" class="mobile-bottom-nav__item">
+        <i data-lucide="shopping-bag"></i>
+        <span class="mobile-bottom-nav__label">Commandes</span>
+        <span class="mobile-bottom-nav__badge" id="orders-badge" style="display: none;">0</span>
+      </a>
+      <a href="/account.html" class="mobile-bottom-nav__item">
+        <i data-lucide="user"></i>
+        <span class="mobile-bottom-nav__label">Profil</span>
+      </a>
+      <a href="/cart.html" class="mobile-bottom-nav__item" style="position: relative;">
+        <i data-lucide="shopping-cart"></i>
+        <span class="mobile-bottom-nav__label">Panier</span>
+        <span class="mobile-bottom-nav__badge" id="mobile-cart-badge" style="display: none;">0</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Chat Widget -->
+  <div class="chat-widget" id="chat-widget">
+    <button class="chat-widget__toggle" id="chat-toggle">
+      <i data-lucide="message-circle"></i>
+    </button>
+    <div class="chat-widget__panel" id="chat-panel">
+      <div class="chat-widget__header">
+        <h3 class="chat-widget__title">Support</h3>
+        <button class="chat-widget__close" id="chat-close">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="chat-widget__messages" id="chat-messages">
+        <div class="chat-message chat-message--received">
+          <p>Bonjour ! Comment puis-je vous aider aujourd'hui ?</p>
+          <span class="chat-message__time">Maintenant</span>
+        </div>
+      </div>
+      <div class="chat-widget__input-area">
+        <input type="text" class="chat-widget__input" id="chat-input" placeholder="Écrivez votre message...">
+        <button class="chat-widget__send" id="chat-send">
+          <i data-lucide="send"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Chat widget toggle
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatPanel = document.getElementById('chat-panel');
+    const chatClose = document.getElementById('chat-close');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const chatMessages = document.getElementById('chat-messages');
+
+    chatToggle?.addEventListener('click', () => {
+      chatPanel?.classList.toggle('chat-widget__panel--open');
+    });
+
+    chatClose?.addEventListener('click', () => {
+      chatPanel?.classList.remove('chat-widget__panel--open');
+    });
+
+    // Send message
+    async function sendMessage() {
+      const text = chatInput?.value.trim();
+      if (!text) return;
+
+      // Add user message
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-message chat-message--sent';
+      userMsg.innerHTML = `<p>${text}</p><span class="chat-message__time">Maintenant</span>`;
+      chatMessages?.appendChild(userMsg);
+      chatInput.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Save to Supabase if user is logged in
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('messages').insert({
+            user_id: user.id,
+            message: text,
+            sender: 'client'
+          });
+        }
+      } catch (e) {
+        console.log('Message saved locally');
+      }
+    }
+
+    chatSend?.addEventListener('click', sendMessage);
+    chatInput?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // Update mobile cart badge
+    async function updateMobileCartBadge() {
+      const user = await getCurrentUser();
+      let count = 0;
+      
+      if (user) {
+        const { data } = await supabase
+          .from('cart_items')
+          .select('quantity')
+          .eq('user_id', user.id);
+        count = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+      } else {
+        const cart = JSON.parse(localStorage.getItem('guest_cart') || '[]');
+        count = cart.reduce((sum, item) => sum + item.quantity, 0);
+      }
+      
+      const badge = document.getElementById('mobile-cart-badge');
+      if (badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+      }
+    }
+    
+    updateMobileCartBadge();
+    lucide.createIcons();
+  </script>
+</body>
+</html>
