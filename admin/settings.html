@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paramètres - Admin</title>
+  <title>Parametres - Sensen Admin</title>
   <link rel="stylesheet" href="/assets/css/main.css">
   <link rel="stylesheet" href="/assets/css/admin.css">
   <style>
@@ -83,11 +83,15 @@
       <button class="admin-sidebar__toggle" id="sidebar-toggle">
         <i data-lucide="menu"></i>
       </button>
-      <div class="admin-sidebar__logo">Admin</div>
+      <div class="admin-sidebar__logo">Sensen Admin</div>
       <nav class="admin-sidebar__nav">
         <a href="/admin/" class="admin-sidebar__link">
           <i data-lucide="layout-dashboard"></i>
           <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/categories.html" class="admin-sidebar__link">
+          <i data-lucide="tags"></i>
+          <span>Categories</span>
         </a>
         <a href="/admin/products.html" class="admin-sidebar__link">
           <i data-lucide="package"></i>
@@ -96,6 +100,10 @@
         <a href="/admin/orders.html" class="admin-sidebar__link">
           <i data-lucide="shopping-cart"></i>
           <span>Commandes</span>
+        </a>
+        <a href="/admin/payments.html" class="admin-sidebar__link">
+          <i data-lucide="credit-card"></i>
+          <span>Paiements</span>
         </a>
         <a href="/admin/customers.html" class="admin-sidebar__link">
           <i data-lucide="users"></i>
@@ -154,6 +162,20 @@
               <label class="admin-form__label">Email de contact</label>
               <input type="email" class="admin-form__input" id="store-email" name="contact_email">
             </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="admin-form__group">
+                <label class="admin-form__label">Telephone</label>
+                <input type="tel" class="admin-form__input" id="store-phone" name="contact_phone">
+              </div>
+              <div class="admin-form__group">
+                <label class="admin-form__label">WhatsApp</label>
+                <input type="tel" class="admin-form__input" id="store-whatsapp" name="whatsapp_number">
+              </div>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label">Adresse de la boutique</label>
+              <input type="text" class="admin-form__input" id="store-address" name="address">
+            </div>
             <button type="submit" class="admin-btn admin-btn--primary">Enregistrer</button>
           </form>
         </div>
@@ -165,36 +187,14 @@
           <h2 class="settings-section__title">Paiement</h2>
         </div>
         <div class="settings-section__content">
-          <form id="payment-form">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              <div class="admin-form__group">
-                <label class="admin-form__label">Numéro MonCash</label>
-                <input type="tel" class="admin-form__input" id="moncash-number" name="moncash_number">
-              </div>
-              <div class="admin-form__group">
-                <label class="admin-form__label">Numéro NatCash</label>
-                <input type="tel" class="admin-form__input" id="natcash-number" name="natcash_number">
-              </div>
-            </div>
-            
-            <div class="admin-form__group" style="margin-top: 16px;">
-              <label class="admin-form__label">Coordonnées bancaires</label>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <input type="text" class="admin-form__input" id="bank-name" placeholder="Nom de la banque">
-                <input type="text" class="admin-form__input" id="bank-account" placeholder="Numéro de compte">
-              </div>
-              <input type="text" class="admin-form__input" id="bank-owner" placeholder="Titulaire du compte" style="margin-top: 8px;">
-            </div>
-
-            <div class="admin-form__group" style="margin-top: 16px;">
-              <label class="admin-form__checkbox">
-                <input type="checkbox" id="cod-enabled" checked>
-                <span>Activer le paiement à la livraison</span>
-              </label>
-            </div>
-
-            <button type="submit" class="admin-btn admin-btn--primary" style="margin-top: 16px;">Enregistrer</button>
-          </form>
+          <p style="font-size: 14px; color: var(--color-text-secondary); line-height: 1.7;">
+            Le paiement est manuel. Les modes de paiement (logo, type, nom du compte,
+            numero de compte, instructions) et la verification des preuves se gerent
+            dans la page dediee.
+          </p>
+          <a href="/admin/payments.html" class="admin-btn admin-btn--primary" style="margin-top: 16px; display: inline-flex;">
+            Gerer les modes de paiement
+          </a>
         </div>
       </div>
 
@@ -205,6 +205,27 @@
         </div>
         <div class="settings-section__content">
           <form id="shipping-form">
+            <div class="admin-form__group">
+              <label class="admin-form__checkbox">
+                <input type="checkbox" id="delivery-enabled" checked>
+                <span>Proposer la livraison a domicile</span>
+              </label>
+              <label class="admin-form__checkbox">
+                <input type="checkbox" id="pickup-enabled" checked>
+                <span>Proposer le retrait en boutique</span>
+              </label>
+            </div>
+
+            <div class="admin-form__group">
+              <label class="admin-form__label">Adresse de retrait</label>
+              <input type="text" class="admin-form__input" id="pickup-address" name="pickup_address">
+            </div>
+
+            <div class="admin-form__group">
+              <label class="admin-form__label">Delai de livraison</label>
+              <input type="text" class="admin-form__input" id="delivery-delay" name="delivery_delay" placeholder="24 - 72 h">
+            </div>
+
             <div class="admin-form__group">
               <label class="admin-form__label">Frais de livraison standard (USD)</label>
               <input type="number" class="admin-form__input" id="shipping-fee" name="shipping_fee" step="0.01" min="0">
@@ -234,6 +255,11 @@
           <h2 class="settings-section__title">Administrateurs</h2>
         </div>
         <div class="settings-section__content">
+          <p style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 16px;">
+            Ces administrateurs sont propres a Sensen Accessories
+            (table <code>boutique_admin_users_sensen</code>) et n'ont aucun acces a l'autre
+            projet qui partage la base de donnees.
+          </p>
           <form id="add-admin-form" style="margin-bottom: 24px;">
             <div style="display: flex; gap: 8px;">
               <input type="email" class="admin-form__input" id="new-admin-email" placeholder="Email du nouvel administrateur" required style="flex: 1;">

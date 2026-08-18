@@ -9,17 +9,68 @@ let currentSort = 'newest';
 let currentOffset = 0;
 let isLoading = false;
 let hasMoreProducts = true;
+let categories = [];
 const PRODUCTS_PER_PAGE = 12;
 
 // ============================================
 // INITIALIZATION
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
-  initFilters();
+document.addEventListener('DOMContentLoaded', async () => {
+  // La catégorie active peut venir de l'URL (?category=slug)
+  const params = new URLSearchParams(window.location.search);
+  currentCategory = params.get('category') || 'all';
+  
+  await loadCategoryFilters();
   initSearch();
   loadProducts();
   initInfiniteScroll();
 });
+
+// ============================================
+// CATEGORIES (créées par l'admin)
+// ============================================
+
+/**
+ * Load the categories created in the admin panel and build the filter bar
+ */
+async function loadCategoryFilters() {
+  categories = await fetchCategories();
+  
+  const container = document.querySelector('.filter-bar__categories');
+  if (container) {
+    if (categories.length === 0) {
+      // Aucune catégorie créée : on masque la barre de catégories
+      container.innerHTML = '';
+      currentCategory = 'all';
+    } else {
+      const buttons = [{ slug: 'all', name: 'Tout' }, ...categories];
+      container.innerHTML = buttons.map(cat => `
+        <button class="filter-bar__category${cat.slug === currentCategory ? ' filter-bar__category--active' : ''}"
+                data-category="${cat.slug}">${cat.name}</button>
+      `).join('');
+    }
+  }
+  
+  renderCategoryMenu(categories);
+  initFilters();
+}
+
+/**
+ * Fill the mobile menu with the dynamic categories
+ */
+function renderCategoryMenu(cats) {
+  const menu = document.querySelector('.mobile-menu__nav--categories');
+  if (!menu) return;
+  
+  menu.innerHTML = cats
+    .filter(c => c.show_in_menu !== false)
+    .map(c => `<a href="/?category=${c.slug}">${c.name}</a>`)
+    .join('');
+}
+
+function getCategoryBySlug(slug) {
+  return categories.find(c => c.slug === slug);
+}
 
 // ============================================
 // PRODUCT LOADING
@@ -36,15 +87,18 @@ async function loadProducts(append = false) {
   
   try {
     let query = supabase
-      .from('products')
-      .select('*')
+      .from(TBL.products)
+      .select('*, category:category_id (id, name, slug)')
       .eq('is_active', true)
       .order('display_order', { ascending: true })
       .range(currentOffset, currentOffset + PRODUCTS_PER_PAGE - 1);
     
-    // Apply category filter
+    // Apply category filter (categories are created by the admin)
     if (currentCategory !== 'all') {
-      query = query.eq('category', currentCategory);
+      const category = getCategoryBySlug(currentCategory);
+      if (category) {
+        query = query.eq('category_id', category.id);
+      }
     }
     
     // Apply sorting
@@ -178,7 +232,7 @@ function createProductCard(product) {
   
   const category = document.createElement('div');
   category.className = 'product-card__category';
-  category.textContent = formatCategory(product.category);
+  category.textContent = formatCategory(product);
   info.appendChild(category);
   
   const name = document.createElement('div');
@@ -295,8 +349,8 @@ async function performSearch(query) {
   
   try {
     const { data: products, error } = await supabase
-      .from('products')
-      .select('*')
+      .from(TBL.products)
+      .select('*, category:category_id (id, name, slug)')
       .eq('is_active', true)
       .ilike('name', `%${query}%`)
       .order('display_order', { ascending: true })
@@ -378,15 +432,10 @@ function showEmptyState(show) {
   }
 }
 
-function formatCategory(category) {
-  const categories = {
-    'vetements': 'Vêtements',
-    'parfums': 'Parfums',
-    'accessoires': 'Accessoires',
-    'nouveautes': 'Nouveautés',
-    'soldes': 'Soldes'
-  };
-  return categories[category] || category;
+function formatCategory(product) {
+  if (product?.category?.name) return product.category.name;
+  const category = getCategoryBySlug(product?.category?.slug);
+  return category?.name || '';
 }
 
 function formatPrice(price) {

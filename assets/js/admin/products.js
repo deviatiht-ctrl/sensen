@@ -5,6 +5,7 @@
 // STATE
 // ============================================
 let products = [];
+let categories = [];
 let editingProduct = null;
 let uploadedImages = [];
 
@@ -15,7 +16,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const isAdmin = await requireAdmin();
   if (!isAdmin) return;
   
-  loadProducts();
+  await loadCategories();
+  await loadProducts();
   initProductForm();
   initFilters();
   
@@ -31,11 +33,48 @@ document.addEventListener('DOMContentLoaded', async () => {
 // PRODUCT LOADING
 // ============================================
 
+/**
+ * Load the categories created by the admin and fill the selects
+ */
+async function loadCategories() {
+  try {
+    const { data, error } = await supabase
+      .from(TBL.categories)
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('name', { ascending: true });
+    
+    if (error) throw error;
+    categories = data || [];
+    
+    const formSelect = document.getElementById('product-category');
+    if (formSelect) {
+      formSelect.innerHTML = categories.length
+        ? categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')
+        : '<option value="">Creez d\'abord une categorie</option>';
+    }
+    
+    const filterSelect = document.querySelector('.admin-filters__category');
+    if (filterSelect) {
+      filterSelect.innerHTML = '<option value="all">Toutes les categories</option>'
+        + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+    
+    const emptyNotice = document.querySelector('.categories-empty-notice');
+    if (emptyNotice) {
+      emptyNotice.style.display = categories.length ? 'none' : 'block';
+    }
+    
+  } catch (err) {
+    console.error('Error loading categories:', err);
+  }
+}
+
 async function loadProducts() {
   try {
     const { data, error } = await supabase
-      .from('products')
-      .select('*')
+      .from(TBL.products)
+      .select('*, category:category_id (id, name, slug)')
       .order('display_order', { ascending: true });
     
     if (error) throw error;
@@ -66,7 +105,7 @@ function renderProductsTable(productsToRender) {
              style="width: 50px; height: 67px; object-fit: cover;">
       </td>
       <td>${p.name}</td>
-      <td>${formatCategory(p.category)}</td>
+      <td>${formatCategory(p)}</td>
       <td>${formatPrice(p.sale_price || p.price)}</td>
       <td>${p.stock}</td>
       <td>
@@ -188,7 +227,7 @@ function openProductModal(productId = null) {
     
     // Fill form
     document.getElementById('product-name').value = editingProduct.name;
-    document.getElementById('product-category').value = editingProduct.category;
+    document.getElementById('product-category').value = editingProduct.category_id || '';
     document.getElementById('product-description').value = editingProduct.description || '';
     document.getElementById('product-price').value = editingProduct.price;
     document.getElementById('product-sale-price').value = editingProduct.sale_price || '';
@@ -200,6 +239,11 @@ function openProductModal(productId = null) {
       window.productSizes = [...editingProduct.sizes];
       renderSizesTags();
     }
+    
+    const featuredEl = document.getElementById('product-featured');
+    if (featuredEl) featuredEl.checked = !!editingProduct.is_featured;
+    const newEl = document.getElementById('product-new');
+    if (newEl) newEl.checked = !!editingProduct.is_new;
     
     // Set images
     uploadedImages = [...(editingProduct.images || [])];
@@ -229,23 +273,33 @@ function closeProductModal() {
 async function saveProduct() {
   const formData = new FormData(document.getElementById('product-form'));
   
+  const salePrice = formData.get('sale_price') ? parseFloat(formData.get('sale_price')) : null;
+  
   const productData = {
     name: formData.get('name'),
-    category: formData.get('category'),
+    category_id: formData.get('category') || null,
     description: formData.get('description'),
     price: parseFloat(formData.get('price')),
-    sale_price: formData.get('sale_price') ? parseFloat(formData.get('sale_price')) : null,
+    sale_price: salePrice,
     stock: parseInt(formData.get('stock')),
     sizes: window.productSizes || [],
     images: uploadedImages,
+    is_sale: !!salePrice,
+    is_featured: document.getElementById('product-featured')?.checked || false,
+    is_new: document.getElementById('product-new')?.checked || false,
     is_active: document.getElementById('product-status').checked
   };
+  
+  if (!productData.category_id) {
+    showToast('Selectionnez une categorie (creez-en une si necessaire)', 'error');
+    return;
+  }
   
   try {
     if (editingProduct) {
       // Update existing
       const { error } = await supabase
-        .from('products')
+        .from(TBL.products)
         .update(productData)
         .eq('id', editingProduct.id);
       
@@ -255,7 +309,7 @@ async function saveProduct() {
     } else {
       // Create new
       const { error } = await supabase
-        .from('products')
+        .from(TBL.products)
         .insert(productData);
       
       if (error) throw error;
@@ -285,7 +339,7 @@ async function deleteProduct(productId) {
     
     // Option 2: Soft delete (set inactive)
     const { error } = await supabase
-      .from('products')
+      .from(TBL.products)
       .update({ is_active: false })
       .eq('id', productId);
     
@@ -307,7 +361,7 @@ async function deleteProduct(productId) {
 async function toggleProductStatus(productId, newStatus) {
   try {
     const { error } = await supabase
-      .from('products')
+      .from(TBL.products)
       .update({ is_active: newStatus })
       .eq('id', productId);
     
@@ -344,7 +398,7 @@ function initFilters() {
     // Category filter
     const category = categorySelect?.value;
     if (category && category !== 'all') {
-      filtered = filtered.filter(p => p.category === category);
+      filtered = filtered.filter(p => p.category_id === category);
     }
     
     // Status filter
@@ -416,15 +470,9 @@ function removeSize(index) {
 // UTILITIES
 // ============================================
 
-function formatCategory(category) {
-  const categories = {
-    'vetements': 'Vêtements',
-    'parfums': 'Parfums',
-    'accessoires': 'Accessoires',
-    'nouveautes': 'Nouveautés',
-    'soldes': 'Soldes'
-  };
-  return categories[category] || category;
+function formatCategory(product) {
+  if (product?.category?.name) return product.category.name;
+  return categories.find(c => c.id === product?.category_id)?.name || '-';
 }
 
 function formatPrice(price) {

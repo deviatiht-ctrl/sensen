@@ -370,6 +370,12 @@ h6 { font-size: 1rem; }
   margin-top: var(--space-5);
 }
 
+/* Conteneur des categories dynamiques (creees dans l'admin) */
+.mobile-menu__nav--categories {
+  display: contents;
+  margin-top: 0;
+}
+
 .mobile-menu__nav a {
   display: block;
   padding: var(--space-2) 0;

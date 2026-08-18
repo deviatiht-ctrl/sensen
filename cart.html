@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panier</title>
+  <title>Panier - Sensen Accessories</title>
   <link rel="stylesheet" href="/assets/css/main.css">
   <link rel="stylesheet" href="/assets/css/cart.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +18,7 @@
       </a>
     </div>
     <div class="navbar__center">
-      <a href="/" class="store-name" id="store-name">NOM DU STORE</a>
+      <a href="/" class="store-name" id="store-name">Sensen Accessories</a>
     </div>
     <div class="navbar__right">
       <a href="/admin/" class="navbar__admin" id="admin-link">Admin</a>
@@ -60,11 +60,8 @@
       <i data-lucide="x"></i>
     </div>
     <nav class="mobile-menu__nav">
-      <a href="/?category=vetements">Vêtements</a>
-      <a href="/?category=parfums">Parfums</a>
-      <a href="/?category=accessoires">Accessoires</a>
-      <a href="/?category=nouveautes">Nouveautés</a>
-      <a href="/?category=soldes">Soldes</a>
+      <a href="/brand.html">Notre Marque</a>
+      <span class="mobile-menu__nav mobile-menu__nav--categories"></span>
       <a href="/account.html">Mon compte</a>
     </nav>
   </div>
@@ -115,49 +112,43 @@
             </div>
           </div>
 
-          <!-- Payment Methods -->
+          <!-- Delivery Method -->
+          <div class="delivery-methods">
+            <div class="payment-methods__title">Mode de reception</div>
+
+            <div class="delivery-option delivery-option--active" data-method="delivery">
+              <div class="payment-method__radio delivery-option__radio"></div>
+              <span class="payment-method__label">Livraison a domicile</span>
+            </div>
+            <div class="delivery-option" data-method="pickup">
+              <div class="payment-method__radio delivery-option__radio"></div>
+              <span class="payment-method__label">Retrait en boutique</span>
+            </div>
+
+            <div class="pickup-info" style="display: none;">
+              <p class="payment-details__text">
+                Adresse de retrait : <span class="pickup-info__address"></span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Payment Methods (configures dans l'admin) -->
           <div class="payment-methods">
             <div class="payment-methods__title">Mode de paiement</div>
-            
-            <div class="payment-method" data-method="moncash">
-              <div class="payment-method__radio"></div>
-              <span class="payment-method__label">MonCash</span>
-            </div>
-            <div class="payment-details" data-method="moncash" style="display: none;">
-              <input type="tel" class="payment-details__input" placeholder="Numéro de téléphone MonCash">
-            </div>
-
-            <div class="payment-method" data-method="natcash">
-              <div class="payment-method__radio"></div>
-              <span class="payment-method__label">NatCash</span>
-            </div>
-            <div class="payment-details" data-method="natcash" style="display: none;">
-              <input type="tel" class="payment-details__input" placeholder="Numéro de téléphone NatCash">
-            </div>
-
-            <div class="payment-method" data-method="bank_transfer">
-              <div class="payment-method__radio"></div>
-              <span class="payment-method__label">Virement bancaire</span>
-            </div>
-            <div class="payment-details" data-method="bank_transfer" style="display: none;">
-              <p class="payment-details__text">Les détails du virement seront envoyés par email après la commande.</p>
-            </div>
-
-            <div class="payment-method" data-method="cod">
-              <div class="payment-method__radio"></div>
-              <span class="payment-method__label">Paiement à la livraison</span>
+            <div class="payment-methods__list">
+              <!-- Charges dynamiquement depuis l'admin -->
             </div>
           </div>
 
           <!-- Shipping Form -->
           <form class="shipping-form">
-            <h3 class="shipping-form__title">Information de livraison</h3>
+            <h3 class="shipping-form__title">Vos informations</h3>
             
             <input type="text" class="shipping-form__input shipping-form__input--full" name="full_name" placeholder="Nom complet *" required>
             <input type="email" class="shipping-form__input shipping-form__input--full" name="email" placeholder="Email *" required>
             <input type="tel" class="shipping-form__input shipping-form__input--full" name="phone" placeholder="Téléphone *" required>
-            <input type="text" class="shipping-form__input shipping-form__input--full" name="address" placeholder="Adresse complète *" required>
-            <input type="text" class="shipping-form__input" name="city" placeholder="Ville">
+            <input type="text" class="shipping-form__input shipping-form__input--full shipping-form__delivery-only" name="address" placeholder="Adresse complète *" data-required="true" required>
+            <input type="text" class="shipping-form__input shipping-form__delivery-only" name="city" placeholder="Ville">
             <textarea class="shipping-form__input shipping-form__input--full shipping-form__textarea" name="notes" placeholder="Notes de commande (optionnel)"></textarea>
             
             <button type="submit" class="checkout-btn">Passer la commande</button>
@@ -193,7 +184,7 @@
     mobileMenuClose?.addEventListener('click', toggleMenu);
     menuOverlay?.addEventListener('click', toggleMenu);
     
-    // Load store name
+    // Load store name + dynamic categories in the mobile menu
     async function loadStoreName() {
       const settings = await fetchStoreSettings();
       const storeNameEl = document.getElementById('store-name');
@@ -208,7 +199,15 @@
       }
     }
     
+    async function loadMenuCategories() {
+      const container = document.querySelector('.mobile-menu__nav--categories');
+      if (!container) return;
+      const cats = await fetchCategories(true);
+      container.innerHTML = cats.map(c => `<a href="/?category=${c.slug}">${c.name}</a>`).join('');
+    }
+    
     loadStoreName();
+    loadMenuCategories();
   </script>
 
   <!-- Mobile Bottom Navigation -->
@@ -289,7 +288,7 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) await supabase.from('messages').insert({ user_id: user.id, message: text, sender: 'client' });
+        if (user) await supabase.from(TBL.messages).insert({ user_id: user.id, message: text, sender: 'client' });
       } catch (e) {}
     }
 
@@ -301,7 +300,7 @@
       const user = await getCurrentUser();
       let count = 0;
       if (user) {
-        const { data } = await supabase.from('cart_items').select('quantity').eq('user_id', user.id);
+        const { data } = await supabase.from(TBL.cart).select('quantity').eq('user_id', user.id);
         count = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
       } else {
         const cart = JSON.parse(localStorage.getItem('guest_cart') || '[]');

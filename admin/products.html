@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Produits - Admin</title>
+  <title>Produits - Sensen Admin</title>
   <link rel="stylesheet" href="/assets/css/main.css">
   <link rel="stylesheet" href="/assets/css/admin.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,11 +16,15 @@
       <button class="admin-sidebar__toggle" id="sidebar-toggle">
         <i data-lucide="menu"></i>
       </button>
-      <div class="admin-sidebar__logo">Admin</div>
+      <div class="admin-sidebar__logo">Sensen Admin</div>
       <nav class="admin-sidebar__nav">
         <a href="/admin/" class="admin-sidebar__link">
           <i data-lucide="layout-dashboard"></i>
           <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/categories.html" class="admin-sidebar__link">
+          <i data-lucide="tags"></i>
+          <span>Categories</span>
         </a>
         <a href="/admin/products.html" class="admin-sidebar__link admin-sidebar__link--active">
           <i data-lucide="package"></i>
@@ -29,6 +33,10 @@
         <a href="/admin/orders.html" class="admin-sidebar__link">
           <i data-lucide="shopping-cart"></i>
           <span>Commandes</span>
+        </a>
+        <a href="/admin/payments.html" class="admin-sidebar__link">
+          <i data-lucide="credit-card"></i>
+          <span>Paiements</span>
         </a>
         <a href="/admin/customers.html" class="admin-sidebar__link">
           <i data-lucide="users"></i>
@@ -60,18 +68,20 @@
         </button>
       </div>
 
+      <!-- Notice : aucune categorie -->
+      <div class="categories-empty-notice" style="display: none; margin-bottom: 24px; padding: 16px; background: rgba(201, 169, 110, 0.1); border: 1px solid var(--color-gold);">
+        Aucune categorie n'existe encore.
+        <a href="/admin/categories.html" style="text-decoration: underline;">Creez vos categories</a>
+        avant d'ajouter des produits : elles apparaissent automatiquement sur le site.
+      </div>
+
       <!-- Filters -->
       <div class="admin-filters">
         <div class="admin-filters__search">
           <input type="text" placeholder="Rechercher un produit...">
         </div>
         <select class="admin-filters__select admin-filters__category">
-          <option value="all">Toutes les catégories</option>
-          <option value="vetements">Vêtements</option>
-          <option value="parfums">Parfums</option>
-          <option value="accessoires">Accessoires</option>
-          <option value="nouveautes">Nouveautés</option>
-          <option value="soldes">Soldes</option>
+          <option value="all">Toutes les categories</option>
         </select>
         <select class="admin-filters__select admin-filters__status">
           <option value="all">Tous les statuts</option>
@@ -120,11 +130,7 @@
         <div class="admin-form__group">
           <label class="admin-form__label">Catégorie *</label>
           <select class="admin-form__select" name="category" id="product-category" required>
-            <option value="vetements">Vêtements</option>
-            <option value="parfums">Parfums</option>
-            <option value="accessoires">Accessoires</option>
-            <option value="nouveautes">Nouveautés</option>
-            <option value="soldes">Soldes</option>
+            <!-- Categories chargees depuis boutique_categories -->
           </select>
         </div>
 
@@ -177,6 +183,14 @@
           <label class="admin-form__checkbox">
             <input type="checkbox" id="product-status" checked>
             <span>Produit actif</span>
+          </label>
+          <label class="admin-form__checkbox">
+            <input type="checkbox" id="product-featured">
+            <span>Produit en vedette</span>
+          </label>
+          <label class="admin-form__checkbox">
+            <input type="checkbox" id="product-new">
+            <span>Nouveaute</span>
           </label>
         </div>
 

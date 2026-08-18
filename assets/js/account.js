@@ -25,10 +25,10 @@ async function loadAccountData() {
   try {
     // Load customer profile
     const { data: customer, error: customerError } = await supabase
-      .from('customers')
+      .from(TBL.customers)
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
     
     if (customerError && customerError.code !== 'PGRST116') {
       console.error('Error loading customer:', customerError);
@@ -36,14 +36,14 @@ async function loadAccountData() {
     
     // Load orders
     const { data: orders, error: ordersError } = await supabase
-      .from('orders')
+      .from(TBL.orders)
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
     
     if (ordersError) throw ordersError;
     
-    renderProfile({ ...user.user_metadata, ...customer });
+    renderProfile({ email: user.email, ...user.user_metadata, ...customer });
     renderOrders(orders || []);
     
   } catch (err) {
@@ -98,9 +98,10 @@ function initProfileForm() {
       
       // Upsert customer record
       const { error: customerError } = await supabase
-        .from('customers')
+        .from(TBL.customers)
         .upsert({
           id: user.id,
+          email: user.email,
           ...updates
         }, { onConflict: 'id' });
       
@@ -142,6 +143,9 @@ function renderOrders(orders) {
         </div>
         <div class="order-header__right">
           <span class="status-badge status-badge--${order.order_status}">${formatStatus(order.order_status)}</span>
+          ${order.delivery_method === 'delivery' && order.delivery_status !== 'not_started'
+            ? `<span class="order-delivery">${formatDeliveryStatus(order.delivery_status)}</span>`
+            : ''}
           <span class="order-total">${formatPrice(order.total)}</span>
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-rose);">
             <polyline points="9 18 15 12 9 6"></polyline>
@@ -230,14 +234,19 @@ function formatStatus(status) {
   return statuses[status] || status;
 }
 
-function formatPaymentMethod(method) {
-  const methods = {
-    'moncash': 'MonCash',
-    'natcash': 'NatCash',
-    'bank_transfer': 'Virement bancaire',
-    'cod': 'Paiement à la livraison'
+function formatDeliveryStatus(status) {
+  const statuses = {
+    'not_started': 'Pas encore expediee',
+    'preparing': 'En preparation',
+    'ready_for_pickup': 'Prete pour le retrait',
+    'picked_up_by_courier': 'Chez le livreur',
+    'in_transit': 'En transit',
+    'out_for_delivery': 'En cours de livraison',
+    'delivered': 'Livree',
+    'failed': 'Livraison echouee',
+    'returned': 'Retournee'
   };
-  return methods[method] || method;
+  return statuses[status] || status || '';
 }
 
 function formatPrice(price) {
@@ -245,4 +254,4 @@ function formatPrice(price) {
 }
 
 // Export for global access
-window.toggleOrder = toggleOrder;
+window.formatDeliveryStatus = formatDeliveryStatus;

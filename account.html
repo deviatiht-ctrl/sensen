@@ -220,7 +220,7 @@
       </a>
     </div>
     <div class="navbar__center">
-      <a href="/" class="store-name" id="store-name">NOM DU STORE</a>
+      <a href="/" class="store-name" id="store-name">Sensen Accessories</a>
     </div>
     <div class="navbar__right">
       <a href="/admin/" class="navbar__admin" id="admin-link">Admin</a>
@@ -262,11 +262,8 @@
       <i data-lucide="x"></i>
     </div>
     <nav class="mobile-menu__nav">
-      <a href="/?category=vetements">Vêtements</a>
-      <a href="/?category=parfums">Parfums</a>
-      <a href="/?category=accessoires">Accessoires</a>
-      <a href="/?category=nouveautes">Nouveautés</a>
-      <a href="/?category=soldes">Soldes</a>
+      <a href="/brand.html">Notre Marque</a>
+      <span class="mobile-menu__nav mobile-menu__nav--categories"></span>
       <a href="/account.html">Mon compte</a>
     </nav>
   </div>
@@ -421,7 +418,7 @@
         if (!user) return;
         
         const { data: messages } = await supabase
-          .from('messages')
+          .from(TBL.messages)
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: true });
@@ -455,7 +452,7 @@
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from('messages').insert({
+          await supabase.from(TBL.messages).insert({
             user_id: user.id,
             message: text,
             sender: 'client'
@@ -485,58 +482,136 @@
     });
 
     // Make viewOrderDetails globally accessible
+    const ORDER_STATUS_LABELS = {
+      pending: 'En attente',
+      confirmed: 'Confirmee',
+      processing: 'En preparation',
+      shipped: 'Expediee',
+      delivered: 'Livree',
+      cancelled: 'Annulee'
+    };
+
+    const PAYMENT_STATUS_LABELS = {
+      pending: 'En attente de paiement',
+      awaiting_proof: 'En attente de la preuve',
+      proof_submitted: 'Preuve envoyee - en verification',
+      confirmed: 'Paiement confirme',
+      rejected: 'Paiement refuse',
+      refunded: 'Rembourse'
+    };
+
+    const TRACKING_LABELS = {
+      order_placed: 'Commande recue',
+      payment_confirmed: 'Paiement confirme',
+      preparing: 'En preparation',
+      ready_for_pickup: 'Prete pour le retrait',
+      picked_up_by_courier: 'Prise en charge par le livreur',
+      in_transit: 'En transit',
+      out_for_delivery: 'En cours de livraison',
+      delivered: 'Livree',
+      failed: 'Livraison echouee',
+      returned: 'Retournee',
+      cancelled: 'Annulee'
+    };
+
     window.viewOrderDetails = async function(orderId) {
       try {
         const { data: order } = await supabase
-          .from('orders')
-          .select('*, order_items(*)')
+          .from(TBL.orders)
+          .select('*')
           .eq('id', orderId)
           .single();
         
         if (!order) return;
         
-        const statusLabels = {
-          pending: 'En attente',
-          confirmed: 'Confirmée',
-          processing: 'En préparation',
-          shipped: 'Expédiée',
-          delivered: 'Livrée',
-          cancelled: 'Annulée'
-        };
+        const { data: events } = await supabase
+          .from(TBL.tracking)
+          .select('*')
+          .eq('order_id', orderId)
+          .order('created_at', { ascending: true });
+        
+        const items = Array.isArray(order.items) ? order.items : [];
+        const isDelivery = order.delivery_method === 'delivery';
         
         orderModalBody.innerHTML = `
           <div style="margin-bottom: 20px;">
             <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px;">Commande</div>
             <div style="font-family: var(--font-display); font-size: 20px;">${order.order_number}</div>
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-top: 4px;">
+              ${new Date(order.created_at).toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'})}
+            </div>
           </div>
-          <div style="margin-bottom: 20px;">
-            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px;">Statut</div>
-            <span class="status-badge status-badge--${order.status}" style="display: inline-flex; padding: 6px 12px; font-size: 13px; text-transform: uppercase;">${statusLabels[order.status] || order.status}</span>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+            <span class="status-badge status-badge--${order.order_status}" style="display: inline-flex; padding: 6px 12px; font-size: 13px; text-transform: uppercase;">
+              ${ORDER_STATUS_LABELS[order.order_status] || order.order_status}
+            </span>
+            <span class="status-badge" style="display: inline-flex; padding: 6px 12px; font-size: 13px;">
+              ${PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+            </span>
           </div>
-          <div style="margin-bottom: 20px;">
-            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px;">Date</div>
-            <div>${new Date(order.created_at).toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'})}</div>
-          </div>
+
           <div style="margin-bottom: 20px; padding: 16px; background: var(--color-bg-soft);">
             <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">Articles</div>
-            ${order.order_items?.map(item => `
+            ${items.length ? items.map(item => `
               <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--color-border);">
                 <div>
-                  <div style="font-weight: 500;">${item.product_name}</div>
-                  <div style="font-size: 13px; color: var(--color-text-secondary);">Qté: ${item.quantity}</div>
+                  <div style="font-weight: 500;">${item.name}</div>
+                  <div style="font-size: 13px; color: var(--color-text-secondary);">
+                    ${item.size ? 'Taille: ' + item.size + ' | ' : ''}${item.color ? 'Couleur: ' + item.color + ' | ' : ''}Qte: ${item.quantity}
+                  </div>
                 </div>
-                <div>${item.price_usd * item.quantity} USD</div>
+                <div>${(item.price * item.quantity).toFixed(2)} USD</div>
               </div>
-            `).join('') || 'Aucun article'}
+            `).join('') : 'Aucun article'}
+          </div>
+
+          <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0;">
+            <span>Sous-total</span><span>${order.subtotal} USD</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0;">
+            <span>${isDelivery ? 'Livraison' : 'Retrait en boutique'}</span>
+            <span>${order.shipping_fee ? order.shipping_fee + ' USD' : 'Gratuit'}</span>
           </div>
           <div style="display: flex; justify-content: space-between; padding: 12px 0; border-top: 2px solid var(--color-border); font-weight: 500; font-size: 18px;">
-            <span>Total</span>
-            <span>${order.total_usd} USD</span>
+            <span>Total</span><span>${order.total} USD</span>
           </div>
+
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--color-border);">
-            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">Adresse de livraison</div>
-            <div>${order.shipping_address || 'Non spécifiée'}</div>
-            <div>${order.shipping_city || ''}</div>
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">Paiement</div>
+            <div>${order.payment_method_name || '-'}</div>
+            ${order.payment_reference ? `<div style="font-size: 13px; color: var(--color-text-secondary);">Reference: ${order.payment_reference}</div>` : ''}
+            ${order.payment_proof_url ? `<a href="${order.payment_proof_url}" target="_blank" rel="noopener" style="font-size: 13px;">Voir ma preuve de paiement</a>` : ''}
+          </div>
+
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--color-border);">
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">
+              ${isDelivery ? 'Livraison' : 'Retrait'}
+            </div>
+            ${isDelivery ? `
+              <div>${order.delivery_address || 'Adresse non specifiee'}</div>
+              <div>${order.delivery_city || ''}</div>
+              ${order.tracking_code ? `<div style="font-size: 13px; margin-top: 6px;">Code de suivi: <strong>${order.tracking_code}</strong></div>` : ''}
+              ${order.courier_name ? `<div style="font-size: 13px;">Livreur: ${order.courier_name}${order.courier_phone ? ' - ' + order.courier_phone : ''}</div>` : ''}
+              ${order.estimated_delivery_date ? `<div style="font-size: 13px;">Livraison estimee: ${new Date(order.estimated_delivery_date).toLocaleDateString('fr-FR')}</div>` : ''}
+            ` : '<div>Retrait en boutique</div>'}
+          </div>
+
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--color-border);">
+            <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 12px;">Suivi</div>
+            ${(events && events.length) ? events.map(ev => `
+              <div style="display: flex; gap: 12px; padding-bottom: 14px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--color-accent, #c9a96e); margin-top: 5px; flex-shrink: 0;"></div>
+                <div>
+                  <div style="font-weight: 500;">${ev.title || TRACKING_LABELS[ev.status] || ev.status}</div>
+                  ${ev.note ? `<div style="font-size: 13px; color: var(--color-text-secondary);">${ev.note}</div>` : ''}
+                  ${ev.location ? `<div style="font-size: 13px; color: var(--color-text-secondary);">${ev.location}</div>` : ''}
+                  <div style="font-size: 12px; color: var(--color-text-secondary);">
+                    ${new Date(ev.created_at).toLocaleString('fr-FR')}
+                  </div>
+                </div>
+              </div>
+            `).join('') : '<div style="font-size: 13px; color: var(--color-text-secondary);">Aucun evenement pour le moment.</div>'}
           </div>
         `;
         
@@ -555,15 +630,15 @@
       
       if (user) {
         const { data: cartData } = await supabase
-          .from('cart_items')
+          .from(TBL.cart)
           .select('quantity')
           .eq('user_id', user.id);
         cartCount = cartData?.reduce((sum, item) => sum + item.quantity, 0) || 0;
         
         const { data: ordersData } = await supabase
-          .from('orders')
+          .from(TBL.orders)
           .select('id', { count: 'exact' })
-          .eq('customer_id', user.id);
+          .eq('user_id', user.id);
         orderCount = ordersData?.length || 0;
       } else {
         const cart = JSON.parse(localStorage.getItem('guest_cart') || '[]');
@@ -619,7 +694,15 @@
       }
     }
     
+    async function loadMenuCategories() {
+      const container = document.querySelector('.mobile-menu__nav--categories');
+      if (!container) return;
+      const cats = await fetchCategories(true);
+      container.innerHTML = cats.map(c => `<a href="/?category=${c.slug}">${c.name}</a>`).join('');
+    }
+    
     loadStoreName();
+    loadMenuCategories();
   </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tableau de bord - Admin</title>
+  <title>Tableau de bord - Sensen Admin</title>
   <link rel="stylesheet" href="/assets/css/main.css">
   <link rel="stylesheet" href="/assets/css/admin.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,11 +16,15 @@
       <button class="admin-sidebar__toggle" id="sidebar-toggle">
         <i data-lucide="menu"></i>
       </button>
-      <div class="admin-sidebar__logo">Admin</div>
+      <div class="admin-sidebar__logo">Sensen Admin</div>
       <nav class="admin-sidebar__nav">
         <a href="/admin/" class="admin-sidebar__link admin-sidebar__link--active">
           <i data-lucide="layout-dashboard"></i>
           <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/categories.html" class="admin-sidebar__link">
+          <i data-lucide="tags"></i>
+          <span>Categories</span>
         </a>
         <a href="/admin/products.html" class="admin-sidebar__link">
           <i data-lucide="package"></i>
@@ -29,6 +33,10 @@
         <a href="/admin/orders.html" class="admin-sidebar__link">
           <i data-lucide="shopping-cart"></i>
           <span>Commandes</span>
+        </a>
+        <a href="/admin/payments.html" class="admin-sidebar__link">
+          <i data-lucide="credit-card"></i>
+          <span>Paiements</span>
         </a>
         <a href="/admin/customers.html" class="admin-sidebar__link">
           <i data-lucide="users"></i>
@@ -56,6 +64,10 @@
         <h1 class="admin-header__title">Tableau de bord</h1>
       </div>
 
+      <p style="margin-bottom: 24px; color: var(--color-text-secondary); font-size: 14px;">
+        Sensen Accessories - paiement manuel avec verification des preuves et suivi de livraison.
+      </p>
+
       <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -74,6 +86,23 @@
           <div class="stat-card__label">Clients inscrits</div>
           <div class="stat-card__value" data-stat="customers">0</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Paiements a verifier</div>
+          <div class="stat-card__value" data-stat="payments-to-verify">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Livraisons en cours</div>
+          <div class="stat-card__value" data-stat="active-deliveries">0</div>
+        </div>
+      </div>
+
+      <!-- Paiements a verifier -->
+      <div class="payments-to-verify" style="display: none; margin-bottom: 32px; padding: 16px; background: var(--color-bg-soft); border: 1px solid var(--color-border);">
+        <h3 style="font-family: var(--font-display); font-size: 18px; margin-bottom: 12px;">
+          <i data-lucide="credit-card" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 8px;"></i>
+          Preuves de paiement a verifier
+        </h3>
+        <div class="payments-to-verify__list"></div>
       </div>
 
       <!-- Low Stock Alert -->

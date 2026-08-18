@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paiements - Sensen Admin</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <button class="admin-sidebar__toggle" id="sidebar-toggle">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="admin-sidebar__logo">Sensen Admin</div>
+      <nav class="admin-sidebar__nav">
+        <a href="/admin/" class="admin-sidebar__link">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/categories.html" class="admin-sidebar__link">
+          <i data-lucide="tags"></i>
+          <span>Categories</span>
+        </a>
+        <a href="/admin/products.html" class="admin-sidebar__link">
+          <i data-lucide="package"></i>
+          <span>Produits</span>
+        </a>
+        <a href="/admin/orders.html" class="admin-sidebar__link">
+          <i data-lucide="shopping-cart"></i>
+          <span>Commandes</span>
+        </a>
+        <a href="/admin/payments.html" class="admin-sidebar__link admin-sidebar__link--active">
+          <i data-lucide="credit-card"></i>
+          <span>Paiements</span>
+        </a>
+        <a href="/admin/customers.html" class="admin-sidebar__link">
+          <i data-lucide="users"></i>
+          <span>Clients</span>
+        </a>
+        <a href="/admin/messages.html" class="admin-sidebar__link">
+          <i data-lucide="message-circle"></i>
+          <span>Messages</span>
+          <span class="admin-sidebar__badge" id="sidebar-unread-badge" style="display: none; margin-left: auto; background: var(--color-rose); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px;">0</span>
+        </a>
+        <a href="/admin/settings.html" class="admin-sidebar__link">
+          <i data-lucide="settings"></i>
+          <span>Parametres</span>
+        </a>
+        <a href="/" class="admin-sidebar__link" style="margin-top: auto;">
+          <i data-lucide="arrow-left"></i>
+          <span>Retour au site</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">Modes de paiement</h1>
+        <button class="admin-btn admin-btn--primary" onclick="openMethodModal()">
+          <i data-lucide="plus"></i>
+          <span>Ajouter un mode</span>
+        </button>
+      </div>
+
+      <p style="margin-bottom: 24px; color: var(--color-text-secondary); font-size: 14px; max-width: 760px;">
+        Le paiement est manuel : vous definissez ici le logo, le type, le nom du compte,
+        le numero de compte et les instructions. Le client choisit un mode au moment de la
+        commande, effectue le paiement, puis televerse sa preuve de paiement que vous
+        validez dans la page Commandes.
+      </p>
+
+      <!-- Payment methods table -->
+      <div class="admin-table-container" style="margin-bottom: 40px;">
+        <table class="admin-table" id="methods-table">
+          <thead>
+            <tr>
+              <th>Logo</th>
+              <th>Nom</th>
+              <th>Type</th>
+              <th>Nom du compte</th>
+              <th>Numero de compte</th>
+              <th>Preuve requise</th>
+              <th>Actif</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Loaded dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Proofs to review -->
+      <div class="admin-header">
+        <h2 class="admin-header__title" style="font-size: 22px;">Preuves de paiement a verifier</h2>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table" id="proofs-table">
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Client</th>
+              <th>Montant</th>
+              <th>Reference</th>
+              <th>Envoyee le</th>
+              <th>Preuve</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Loaded dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Payment method Modal -->
+  <div class="slide-panel" id="method-panel">
+    <div class="slide-panel__header">
+      <h2 class="slide-panel__title">Ajouter un mode de paiement</h2>
+      <button class="slide-panel__close" onclick="closeMethodModal()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="slide-panel__content">
+      <form id="method-form" class="admin-form">
+        <div class="admin-form__group">
+          <label class="admin-form__label">Nom du mode de paiement *</label>
+          <input type="text" class="admin-form__input" id="method-name" placeholder="MonCash, NatCash, Sogebank..." required>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Type de paiement *</label>
+          <select class="admin-form__select" id="method-type" required>
+            <option value="mobile_money">Mobile money</option>
+            <option value="bank_transfer">Virement bancaire</option>
+            <option value="cash">Especes / a la livraison</option>
+            <option value="card">Carte</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Logo du mode de paiement</label>
+          <div class="image-upload" id="method-logo-upload">
+            <svg class="image-upload__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="M21 15l-5-5L5 21"></path>
+            </svg>
+            <p class="image-upload__text">Cliquez pour choisir le logo</p>
+            <input type="file" id="method-logo" class="image-upload__input" accept="image/*">
+          </div>
+          <div class="image-thumbnails" id="method-logo-preview"></div>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Nom sur le compte</label>
+          <input type="text" class="admin-form__input" id="method-account-name" placeholder="Sensen Accessories">
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Numero de compte / telephone</label>
+          <input type="text" class="admin-form__input" id="method-account-number" placeholder="+509 0000 0000">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="admin-form__group">
+            <label class="admin-form__label">Banque</label>
+            <input type="text" class="admin-form__input" id="method-bank">
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Succursale</label>
+            <input type="text" class="admin-form__input" id="method-branch">
+          </div>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Instructions pour le client</label>
+          <textarea class="admin-form__textarea" id="method-instructions" rows="4"
+                    placeholder="Ex: Voye montan total la sou nimewo sa a epi upload kaptire tranzaksyon an."></textarea>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Ordre d'affichage</label>
+          <input type="number" class="admin-form__input" id="method-order" min="0" value="0">
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__checkbox">
+            <input type="checkbox" id="method-proof" checked>
+            <span>Le client doit televerser une preuve de paiement</span>
+          </label>
+          <label class="admin-form__checkbox">
+            <input type="checkbox" id="method-active" checked>
+            <span>Mode actif (visible au checkout)</span>
+          </label>
+        </div>
+
+        <button type="submit" class="admin-btn admin-btn--primary" style="width: 100%; margin-top: 24px;">
+          Enregistrer
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/admin/payments.js"></script>
+  <script>
+    lucide.createIcons();
+
+    const sidebar = document.querySelector('.admin-sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+
+    sidebarToggle?.addEventListener('click', () => {
+      sidebar?.classList.toggle('admin-sidebar--open');
+    });
+  </script>
+</body>
+</html>

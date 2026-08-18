@@ -43,7 +43,7 @@ async function loadConversations() {
   try {
     // Get all unique users who have sent messages
     const { data: messages, error } = await supabase
-      .from('messages')
+      .from(TBL.messages)
       .select('user_id, sender, message, created_at, read')
       .order('created_at', { ascending: false });
     
@@ -70,10 +70,10 @@ async function loadConversations() {
     // Get user details for each conversation
     for (const conv of conversations) {
       const { data: userData } = await supabase
-        .from('customers')
+        .from(TBL.customers)
         .select('full_name, email, phone')
         .eq('id', conv.user_id)
-        .single();
+        .maybeSingle();
       
       if (userData) {
         conv.name = userData.full_name || 'Client';
@@ -186,7 +186,7 @@ async function selectConversation(userId) {
 async function loadMessages(userId) {
   try {
     const { data: messages, error } = await supabase
-      .from('messages')
+      .from(TBL.messages)
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: true });
@@ -234,7 +234,7 @@ async function sendAdminMessage() {
   
   try {
     const { error } = await supabase
-      .from('messages')
+      .from(TBL.messages)
       .insert({
         user_id: currentConversation,
         message: text,
@@ -271,7 +271,7 @@ async function sendAdminMessage() {
 async function markAsRead(userId) {
   try {
     await supabase
-      .from('messages')
+      .from(TBL.messages)
       .update({ read: true })
       .eq('user_id', userId)
       .eq('sender', 'client')
@@ -298,7 +298,7 @@ function subscribeToNewMessages() {
   messagesSubscription = supabase
     .channel('admin-messages')
     .on('postgres_changes', 
-      { event: 'INSERT', schema: 'public', table: 'messages' },
+      { event: 'INSERT', schema: 'public', table: TBL.messages },
       (payload) => {
         const newMessage = payload.new;
         

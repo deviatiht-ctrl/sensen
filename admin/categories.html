@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categories - Sensen Admin</title>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <button class="admin-sidebar__toggle" id="sidebar-toggle">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="admin-sidebar__logo">Sensen Admin</div>
+      <nav class="admin-sidebar__nav">
+        <a href="/admin/" class="admin-sidebar__link">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Tableau de bord</span>
+        </a>
+        <a href="/admin/categories.html" class="admin-sidebar__link admin-sidebar__link--active">
+          <i data-lucide="tags"></i>
+          <span>Categories</span>
+        </a>
+        <a href="/admin/products.html" class="admin-sidebar__link">
+          <i data-lucide="package"></i>
+          <span>Produits</span>
+        </a>
+        <a href="/admin/orders.html" class="admin-sidebar__link">
+          <i data-lucide="shopping-cart"></i>
+          <span>Commandes</span>
+        </a>
+        <a href="/admin/payments.html" class="admin-sidebar__link">
+          <i data-lucide="credit-card"></i>
+          <span>Paiements</span>
+        </a>
+        <a href="/admin/customers.html" class="admin-sidebar__link">
+          <i data-lucide="users"></i>
+          <span>Clients</span>
+        </a>
+        <a href="/admin/messages.html" class="admin-sidebar__link">
+          <i data-lucide="message-circle"></i>
+          <span>Messages</span>
+          <span class="admin-sidebar__badge" id="sidebar-unread-badge" style="display: none; margin-left: auto; background: var(--color-rose); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px;">0</span>
+        </a>
+        <a href="/admin/settings.html" class="admin-sidebar__link">
+          <i data-lucide="settings"></i>
+          <span>Parametres</span>
+        </a>
+        <a href="/" class="admin-sidebar__link" style="margin-top: auto;">
+          <i data-lucide="arrow-left"></i>
+          <span>Retour au site</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">Categories</h1>
+        <button class="admin-btn admin-btn--primary" onclick="openCategoryModal()">
+          <i data-lucide="plus"></i>
+          <span>Ajouter une categorie</span>
+        </button>
+      </div>
+
+      <p style="margin-bottom: 24px; color: var(--color-text-secondary); font-size: 14px; max-width: 720px;">
+        Les categories que vous creez ici apparaissent automatiquement dans la barre de
+        filtres et le menu du site. Aucune categorie n'est pre-remplie : la boutique
+        affiche uniquement ce que vous ajoutez.
+      </p>
+
+      <!-- Filters -->
+      <div class="admin-filters">
+        <div class="admin-filters__search">
+          <input type="text" placeholder="Rechercher une categorie...">
+        </div>
+        <select class="admin-filters__select admin-filters__status">
+          <option value="all">Tous les statuts</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+      <!-- Categories Table -->
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Nom</th>
+              <th>Slug</th>
+              <th>Produits</th>
+              <th>Ordre</th>
+              <th>Menu</th>
+              <th>Active</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Categories loaded dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Category Modal (Slide Panel) -->
+  <div class="slide-panel" id="category-panel">
+    <div class="slide-panel__header">
+      <h2 class="slide-panel__title">Ajouter une categorie</h2>
+      <button class="slide-panel__close" onclick="closeCategoryModal()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="slide-panel__content">
+      <form id="category-form" class="admin-form">
+        <div class="admin-form__group">
+          <label class="admin-form__label">Nom de la categorie *</label>
+          <input type="text" class="admin-form__input" name="name" id="category-name" required>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Slug (URL)</label>
+          <input type="text" class="admin-form__input" name="slug" id="category-slug"
+                 placeholder="genere automatiquement">
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Description</label>
+          <textarea class="admin-form__textarea" name="description" id="category-description" rows="3"></textarea>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Image de la categorie</label>
+          <div class="image-upload" id="category-image-upload">
+            <svg class="image-upload__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="M21 15l-5-5L5 21"></path>
+            </svg>
+            <p class="image-upload__text">Cliquez pour choisir une image</p>
+            <input type="file" id="category-image" class="image-upload__input" accept="image/*">
+          </div>
+          <div class="image-thumbnails" id="category-image-preview"></div>
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__label">Ordre d'affichage</label>
+          <input type="number" class="admin-form__input" name="display_order" id="category-order" min="0" value="0">
+        </div>
+
+        <div class="admin-form__group">
+          <label class="admin-form__checkbox">
+            <input type="checkbox" id="category-active" checked>
+            <span>Categorie active (visible sur le site)</span>
+          </label>
+          <label class="admin-form__checkbox">
+            <input type="checkbox" id="category-menu" checked>
+            <span>Afficher dans le menu</span>
+          </label>
+        </div>
+
+        <button type="submit" class="admin-btn admin-btn--primary" style="width: 100%; margin-top: 24px;">
+          Enregistrer
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/supabase.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/admin/categories.js"></script>
+  <script>
+    lucide.createIcons();
+
+    const sidebar = document.querySelector('.admin-sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+
+    sidebarToggle?.addEventListener('click', () => {
+      sidebar?.classList.toggle('admin-sidebar--open');
+    });
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Produit</title>
+  <title>Produit - Sensen Accessories</title>
   <link rel="stylesheet" href="/assets/css/main.css">
   <link rel="stylesheet" href="/assets/css/product.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +18,7 @@
       </a>
     </div>
     <div class="navbar__center">
-      <a href="/" class="store-name" id="store-name">NOM DU STORE</a>
+      <a href="/" class="store-name" id="store-name">Sensen Accessories</a>
     </div>
     <div class="navbar__right">
       <a href="/admin/" class="navbar__admin" id="admin-link">Admin</a>
@@ -61,11 +61,7 @@
     </div>
     <nav class="mobile-menu__nav">
       <a href="/brand.html">Notre Marque</a>
-      <a href="/?category=vetements">Vêtements</a>
-      <a href="/?category=parfums">Parfums</a>
-      <a href="/?category=accessoires">Accessoires</a>
-      <a href="/?category=nouveautes">Nouveautés</a>
-      <a href="/?category=soldes">Soldes</a>
+      <span class="mobile-menu__nav mobile-menu__nav--categories"></span>
       <a href="/account.html">Mon compte</a>
     </nav>
   </div>
@@ -224,6 +220,15 @@
     mobileMenuClose?.addEventListener('click', toggleMenu);
     menuOverlay?.addEventListener('click', toggleMenu);
     
+    // Load dynamic categories in the mobile menu
+    async function loadMenuCategories() {
+      const container = document.querySelector('.mobile-menu__nav--categories');
+      if (!container) return;
+      const cats = await fetchCategories(true);
+      container.innerHTML = cats.map(c => `<a href="/?category=${c.slug}">${c.name}</a>`).join('');
+    }
+    loadMenuCategories();
+    
     // Load store name
     async function loadStoreName() {
       const settings = await fetchStoreSettings();
@@ -320,7 +325,7 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) await supabase.from('messages').insert({ user_id: user.id, message: text, sender: 'client' });
+        if (user) await supabase.from(TBL.messages).insert({ user_id: user.id, message: text, sender: 'client' });
       } catch (e) {}
     }
 
@@ -332,7 +337,7 @@
       const user = await getCurrentUser();
       let count = 0;
       if (user) {
-        const { data } = await supabase.from('cart_items').select('quantity').eq('user_id', user.id);
+        const { data } = await supabase.from(TBL.cart).select('quantity').eq('user_id', user.id);
         count = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
       } else {
         const cart = JSON.parse(localStorage.getItem('guest_cart') || '[]');

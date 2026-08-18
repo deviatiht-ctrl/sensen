@@ -36,10 +36,10 @@ async function isAdmin() {
     if (!user) return false;
     
     const { data, error } = await supabase
-      .from('admin_users')
+      .from(TBL.admins)
       .select('email')
       .eq('email', user.email)
-      .single();
+      .maybeSingle();
     
     if (error && error.code !== 'PGRST116') throw error;
     
@@ -108,9 +108,10 @@ async function register(email, password, fullName) {
     
     // Create customer record
     if (data.user) {
-      await supabase.from('customers').insert({
+      await supabase.from(TBL.customers).insert({
         id: data.user.id,
         full_name: fullName,
+        email: email,
         phone: ''
       });
     }

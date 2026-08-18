@@ -349,6 +349,116 @@
   line-height: 1.6;
 }
 
+.payment-method__logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  background: var(--color-bg-soft);
+  padding: 2px;
+}
+
+.payment-method__type {
+  margin-left: auto;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.payment-method--active .payment-method__label {
+  font-weight: 500;
+}
+
+.payment-methods__empty {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.payment-details__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.payment-details__label {
+  color: var(--color-text-secondary);
+}
+
+.payment-details__value {
+  font-weight: 500;
+  text-align: right;
+  word-break: break-all;
+}
+
+/* Preuve de paiement (paiement manuel) */
+.payment-proof {
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  background: var(--color-bg-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-proof__label {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.payment-proof__input {
+  font-size: 13px;
+}
+
+.payment-proof__filename {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  word-break: break-all;
+}
+
+/* ============================================
+   DELIVERY METHODS
+   ============================================ */
+.delivery-methods {
+  margin: var(--space-3) 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.delivery-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.delivery-option--active .payment-method__label {
+  font-weight: 500;
+}
+
+.pickup-info {
+  padding: var(--space-2);
+  background: var(--color-bg-soft);
+}
+
+.order-confirmation__tracking {
+  font-size: 14px;
+  margin-bottom: var(--space-2);
+}
+
+.order-confirmation__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
 /* ============================================
    SHIPPING FORM
    ============================================ */

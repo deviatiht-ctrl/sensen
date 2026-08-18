@@ -37,8 +37,8 @@ async function loadProductDetail() {
   try {
     console.log('Fetching from Supabase...');
     const { data: product, error } = await supabase
-      .from('products')
-      .select('*')
+      .from(TBL.products)
+      .select('*, category:category_id (id, name, slug)')
       .eq('id', productId)
       .eq('is_active', true)
       .single();
@@ -73,13 +73,13 @@ function renderProductDetail(product) {
   
   const breadcrumbCategory = document.querySelector('.breadcrumb__category');
   if (breadcrumbCategory) {
-    breadcrumbCategory.textContent = formatCategory(product.category);
-    breadcrumbCategory.href = `/?category=${product.category}`;
+    breadcrumbCategory.textContent = formatCategory(product);
+    breadcrumbCategory.href = product.category?.slug ? `/?category=${product.category.slug}` : '/';
   }
   
   // Update product info
   const categoryEl = document.querySelector('.product-info__category');
-  if (categoryEl) categoryEl.textContent = formatCategory(product.category);
+  if (categoryEl) categoryEl.textContent = formatCategory(product);
   
   const nameEl = document.querySelector('.product-info__name');
   if (nameEl) nameEl.textContent = product.name;
@@ -387,7 +387,7 @@ async function addToCart() {
     if (user) {
       // Add to Supabase cart
       const { error } = await supabase
-        .from('cart_items')
+        .from(TBL.cart)
         .upsert({
           ...cartItem,
           user_id: user.id
@@ -457,7 +457,7 @@ async function updateCartCount() {
   
   if (user) {
     const { data } = await supabase
-      .from('cart_items')
+      .from(TBL.cart)
       .select('quantity', { count: 'exact' })
       .eq('user_id', user.id);
     
@@ -481,15 +481,8 @@ document.addEventListener('DOMContentLoaded', updateCartCount);
 // UTILITIES
 // ============================================
 
-function formatCategory(category) {
-  const categories = {
-    'vetements': 'Vêtements',
-    'parfums': 'Parfums',
-    'accessoires': 'Accessoires',
-    'nouveautes': 'Nouveautés',
-    'soldes': 'Soldes'
-  };
-  return categories[category] || category;
+function formatCategory(product) {
+  return product?.category?.name || '';
 }
 
 function formatPrice(price) {
@@ -561,7 +554,7 @@ async function buyNow() {
   // User is logged in, add to Supabase cart
   try {
     const { error } = await supabase
-      .from('cart_items')
+      .from(TBL.cart)
       .upsert({
         ...cartItem,
         user_id: user.id

@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadDashboardStats();
   loadRecentOrders();
   loadLowStockAlert();
+  loadPaymentsToVerify();
 });
 
 // ============================================
@@ -21,35 +22,49 @@ async function loadDashboardStats() {
   try {
     // Total revenue (completed orders)
     const { data: revenueData } = await supabase
-      .from('orders')
+      .from(TBL.orders)
       .select('total')
-      .eq('order_status', 'delivered');
+      .eq('payment_status', 'confirmed');
     
     const totalRevenue = revenueData?.reduce((sum, o) => sum + (o.total || 0), 0) || 0;
     
     // Today's orders
     const today = new Date().toISOString().split('T')[0];
     const { count: todayOrders } = await supabase
-      .from('orders')
+      .from(TBL.orders)
       .select('*', { count: 'exact', head: true })
       .gte('created_at', today);
     
     // Active products
     const { count: activeProducts } = await supabase
-      .from('products')
+      .from(TBL.products)
       .select('*', { count: 'exact', head: true })
       .eq('is_active', true);
     
     // Registered customers
     const { count: customersCount } = await supabase
-      .from('customers')
+      .from(TBL.customers)
       .select('*', { count: 'exact', head: true });
+    
+    // Paiements a verifier (preuves envoyees)
+    const { count: pendingPayments } = await supabase
+      .from(TBL.orders)
+      .select('*', { count: 'exact', head: true })
+      .in('payment_status', ['proof_submitted', 'awaiting_proof']);
+    
+    // Livraisons en cours
+    const { count: activeDeliveries } = await supabase
+      .from(TBL.orders)
+      .select('*', { count: 'exact', head: true })
+      .in('delivery_status', ['preparing', 'picked_up_by_courier', 'in_transit', 'out_for_delivery']);
     
     // Update UI
     updateStatCard('revenue', formatPrice(totalRevenue));
     updateStatCard('orders-today', todayOrders || 0);
     updateStatCard('products', activeProducts || 0);
     updateStatCard('customers', customersCount || 0);
+    updateStatCard('payments-to-verify', pendingPayments || 0);
+    updateStatCard('active-deliveries', activeDeliveries || 0);
     
   } catch (err) {
     console.error('Error loading dashboard stats:', err);
@@ -70,7 +85,7 @@ function updateStatCard(id, value) {
 async function loadRecentOrders() {
   try {
     const { data: orders, error } = await supabase
-      .from('orders')
+      .from(TBL.orders)
       .select('*')
       .order('created_at', { ascending: false })
       .limit(10);
@@ -115,7 +130,7 @@ function renderRecentOrders(orders) {
 async function loadLowStockAlert() {
   try {
     const { data: products, error } = await supabase
-      .from('products')
+      .from(TBL.products)
       .select('id, name, stock, is_active')
       .lte('stock', 5)
       .eq('is_active', true)
@@ -153,6 +168,45 @@ function renderLowStockAlert(products) {
   }
   
   container.style.display = 'block';
+}
+
+// ============================================
+// PAIEMENTS A VERIFIER
+// ============================================
+
+async function loadPaymentsToVerify() {
+  const container = document.querySelector('.payments-to-verify');
+  if (!container) return;
+  
+  try {
+    const { data: orders, error } = await supabase
+      .from(TBL.orders)
+      .select('id, order_number, customer_name, total, payment_method_name, payment_proof_url, created_at')
+      .in('payment_status', ['proof_submitted', 'awaiting_proof'])
+      .order('created_at', { ascending: false })
+      .limit(5);
+    
+    if (error) throw error;
+    
+    if (!orders || orders.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+    
+    const list = container.querySelector('.payments-to-verify__list');
+    if (list) {
+      list.innerHTML = orders.map(o => `
+        <div class="payments-to-verify__item" onclick="viewOrder('${o.id}')" style="cursor: pointer; display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--color-border);">
+          <span>${o.order_number} - ${o.customer_name}</span>
+          <span>${formatPrice(o.total)} - ${o.payment_method_name || ''}</span>
+        </div>
+      `).join('');
+    }
+    
+    container.style.display = 'block';
+  } catch (err) {
+    console.error('Error loading payments to verify:', err);
+  }
 }
 
 // ============================================

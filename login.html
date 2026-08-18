@@ -17,7 +17,7 @@
         <a href="/">
           <img src="/assets/img/logo-placeholder.svg" alt="Logo" class="auth-logo" id="auth-logo">
         </a>
-        <div class="auth-store-name" id="store-name">NOM DU STORE</div>
+        <div class="auth-store-name" id="store-name">Sensen Accessories</div>
       </div>
 
       <!-- Tabs -->
@@ -327,7 +327,7 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) await supabase.from('messages').insert({ user_id: user.id, message: text, sender: 'client' });
+        if (user) await supabase.from(TBL.messages).insert({ user_id: user.id, message: text, sender: 'client' });
       } catch (e) {}
     }
 
@@ -339,7 +339,7 @@
       const user = await getCurrentUser();
       let count = 0;
       if (user) {
-        const { data } = await supabase.from('cart_items').select('quantity').eq('user_id', user.id);
+        const { data } = await supabase.from(TBL.cart).select('quantity').eq('user_id', user.id);
         count = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
       } else {
         const cart = JSON.parse(localStorage.getItem('guest_cart') || '[]');

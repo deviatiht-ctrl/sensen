@@ -13,7 +13,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Check auth state for admin link
   updateAdminLink();
+  
+  // Fill the mobile menu with the admin-created categories
+  loadMenuCategories();
 });
+
+// ============================================
+// CATEGORIES (créées par l'admin)
+// ============================================
+async function loadMenuCategories() {
+  const container = document.querySelector('.mobile-menu__nav--categories');
+  if (!container) return;
+  
+  const cats = await fetchCategories(true);
+  container.innerHTML = cats
+    .map(c => `<a href="/?category=${c.slug}">${c.name}</a>`)
+    .join('');
+}
 
 // ============================================
 // STORE SETTINGS
@@ -21,9 +37,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadStoreSettings() {
   try {
     const { data: settings } = await supabase
-      .from('store_settings')
+      .from(TBL.settings)
       .select('*')
-      .single();
+      .limit(1)
+      .maybeSingle();
     
     if (settings) {
       // Update store name
@@ -55,7 +72,7 @@ async function updateCartCount() {
     if (user) {
       // Get cart from Supabase
       const { data } = await supabase
-        .from('cart_items')
+        .from(TBL.cart)
         .select('quantity')
         .eq('user_id', user.id);
       

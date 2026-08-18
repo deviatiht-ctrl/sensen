@@ -28,7 +28,7 @@ async function loadCustomers() {
     
     // Simple query without joins first
     const { data: customersData, error: customersError } = await supabase
-      .from('customers')
+      .from(TBL.customers)
       .select('*');
     
     if (customersError) {
@@ -40,7 +40,7 @@ async function loadCustomers() {
     
     // Fetch orders separately
     const { data: allOrders, error: ordersError } = await supabase
-      .from('orders')
+      .from(TBL.orders)
       .select('user_id, total');
     
     if (ordersError) {
@@ -77,7 +77,7 @@ function renderCustomersTable(customersToRender) {
   tbody.innerHTML = customersToRender.map(c => `
     <tr onclick="viewCustomerDetails('${c.id}')" style="cursor: pointer;">
       <td>${c.full_name || '-'}</td>
-      <td>${c.id}</td>
+      <td>${c.email || c.id}</td>
       <td>${c.phone || '-'}</td>
       <td>${formatDate(c.created_at)}</td>
       <td>${c.orders_count || 0}</td>
@@ -97,7 +97,7 @@ async function viewCustomerDetails(customerId) {
   // Load customer orders
   try {
     const { data: orders, error } = await supabase
-      .from('orders')
+      .from(TBL.orders)
       .select('*')
       .eq('user_id', customerId)
       .order('created_at', { ascending: false });
@@ -117,7 +117,7 @@ function renderCustomerModal(customer, orders) {
   
   // Fill customer info
   document.querySelector('.customer-modal__name').textContent = customer.full_name || '-';
-  document.querySelector('.customer-modal__email').textContent = customer.id; // email is stored in auth, not customers table
+  document.querySelector('.customer-modal__email').textContent = customer.email || customer.id;
   document.querySelector('.customer-modal__phone').textContent = customer.phone || '-';
   document.querySelector('.customer-modal__address').textContent = customer.address || '-';
   document.querySelector('.customer-modal__city').textContent = customer.city || '-';
@@ -170,6 +170,7 @@ function initFilters() {
     if (search) {
       filtered = filtered.filter(c => 
         (c.full_name && c.full_name.toLowerCase().includes(search)) ||
+        (c.email && c.email.toLowerCase().includes(search)) ||
         c.id.toLowerCase().includes(search) ||
         (c.phone && c.phone.toLowerCase().includes(search))
       );
