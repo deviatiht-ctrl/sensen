@@ -486,7 +486,7 @@ function formatCategory(product) {
 }
 
 function formatPrice(price) {
-  return `${price} USD`;
+  return `${price} HTG`;
 }
 
 function showToast(message, type = 'success') {

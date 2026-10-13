@@ -199,7 +199,7 @@ function formatStatus(status) {
 }
 
 function formatPrice(price) {
-  return `${price} USD`;
+  return `${price} HTG`;
 }
 
 function formatDate(dateString) {

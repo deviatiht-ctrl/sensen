@@ -476,7 +476,7 @@ function formatCategory(product) {
 }
 
 function formatPrice(price) {
-  return price ? `${price} USD` : '-';
+  return price ? `${price} HTG` : '-';
 }
 
 // Exports

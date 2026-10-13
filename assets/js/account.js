@@ -250,7 +250,7 @@ function formatDeliveryStatus(status) {
 }
 
 function formatPrice(price) {
-  return `${price} USD`;
+  return `${price} HTG`;
 }
 
 // Export for global access

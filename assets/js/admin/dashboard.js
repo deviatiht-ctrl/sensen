@@ -226,7 +226,7 @@ function editProduct(productId) {
 // ============================================
 
 function formatPrice(price) {
-  return `${price} USD`;
+  return `${price} HTG`;
 }
 
 function formatStatus(status) {

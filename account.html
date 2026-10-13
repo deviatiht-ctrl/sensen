@@ -561,20 +561,20 @@
                     ${item.size ? 'Taille: ' + item.size + ' | ' : ''}${item.color ? 'Couleur: ' + item.color + ' | ' : ''}Qte: ${item.quantity}
                   </div>
                 </div>
-                <div>${(item.price * item.quantity).toFixed(2)} USD</div>
+                <div>${(item.price * item.quantity).toFixed(2)} HTG</div>
               </div>
             `).join('') : 'Aucun article'}
           </div>
 
           <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0;">
-            <span>Sous-total</span><span>${order.subtotal} USD</span>
+            <span>Sous-total</span><span>${order.subtotal} HTG</span>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0;">
             <span>${isDelivery ? 'Livraison' : 'Retrait en boutique'}</span>
-            <span>${order.shipping_fee ? order.shipping_fee + ' USD' : 'Gratuit'}</span>
+            <span>${order.shipping_fee ? order.shipping_fee + ' HTG' : 'Gratuit'}</span>
           </div>
           <div style="display: flex; justify-content: space-between; padding: 12px 0; border-top: 2px solid var(--color-border); font-weight: 500; font-size: 18px;">
-            <span>Total</span><span>${order.total} USD</span>
+            <span>Total</span><span>${order.total} HTG</span>
           </div>
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--color-border);">

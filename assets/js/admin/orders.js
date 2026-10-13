@@ -224,7 +224,7 @@ function renderOrderProofs() {
     <div style="padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 13px;">
       <a href="${p.file_url}" target="_blank" rel="noopener">Preuve du ${new Date(p.created_at).toLocaleString('fr-FR')}</a>
       <div style="color: var(--color-text-secondary);">
-        ${p.amount ? p.amount + ' USD - ' : ''}${p.reference || 'sans reference'} - ${formatProofStatus(p.status)}
+        ${p.amount ? p.amount + ' HTG - ' : ''}${p.reference || 'sans reference'} - ${formatProofStatus(p.status)}
       </div>
       ${p.admin_note ? `<div style="color: var(--color-text-secondary);">Note: ${p.admin_note}</div>` : ''}
     </div>
@@ -599,7 +599,7 @@ function formatTrackingStatus(status) {
 }
 
 function formatPrice(price) {
-  return `${price} USD`;
+  return `${price} HTG`;
 }
 
 function formatDate(dateString) {

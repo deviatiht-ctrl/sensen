@@ -305,7 +305,7 @@ function renderProofsTable() {
         </a>
       </td>
       <td>${p.order?.customer_name || '-'}</td>
-      <td>${p.amount ? p.amount + ' USD' : (p.order?.total ? p.order.total + ' USD' : '-')}</td>
+      <td>${p.amount ? p.amount + ' HTG' : (p.order?.total ? p.order.total + ' HTG' : '-')}</td>
       <td>${p.reference || '-'}</td>
       <td>${new Date(p.created_at).toLocaleString('fr-FR')}</td>
       <td>

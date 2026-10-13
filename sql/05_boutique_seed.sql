@@ -15,11 +15,11 @@
 UPDATE boutique_store_settings SET
   store_name = 'Sensen Accessories',
   description = 'Sensen Accessories - accessoires de maison, decoration interieure, studio de beaute. Canapes, chaises, plantes artificielles, lumieres de plafond, miroirs, tapis et plus.',
-  currency = 'USD',
+  currency = 'HTG',
   delivery_enabled = true,
   pickup_enabled = true,
-  shipping_fee = 5,
-  free_shipping_threshold = 250,
+  shipping_fee = 500,
+  free_shipping_threshold = 30000,
   delivery_delay = '24 - 72 h';
 
 -- ============================================

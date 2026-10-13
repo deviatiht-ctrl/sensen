@@ -14,6 +14,7 @@ admin** ak Sensen Accessories.
 | 3 | `03_boutique_storage.sql` | Bucket `boutique-products` ak `boutique-proofs` |
 | 4 | `04_boutique_admin.sql` | Mete email admin ou (chanje l anvan!) |
 | 5 | `05_boutique_seed.sql` | *Opsyonel* : katalog demo Sensen Accessories + mode paiement egzanp |
+| 6 | `06_sensen_catalog.sql` | *Rekòmande* : katalog **reyel** la (326 pwodwi katalog WhatsApp +509 36 71 5753, pri an **HTG**) |
 
 ## Tab yo
 

@@ -670,7 +670,7 @@ function updateCartBadge(count) {
 }
 
 function formatPrice(price) {
-  return `${price} USD`;
+  return `${price} HTG`;
 }
 
 // Export for global access
