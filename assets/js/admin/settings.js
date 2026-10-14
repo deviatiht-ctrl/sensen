@@ -37,6 +37,10 @@ async function loadSettings() {
     document.getElementById('store-whatsapp').value = settings.whatsapp_number || '';
     document.getElementById('store-address').value = settings.address || '';
     
+    // Fill checkout toggle
+    const checkoutEl = document.getElementById('checkout-enabled');
+    if (checkoutEl) checkoutEl.checked = settings.checkout_enabled === true;
+
     // Fill shipping form
     document.getElementById('delivery-enabled').checked = settings.delivery_enabled !== false;
     document.getElementById('pickup-enabled').checked = settings.pickup_enabled !== false;
@@ -91,6 +95,12 @@ function initForms() {
   document.getElementById('shipping-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     await saveShippingSettings();
+  });
+
+  // Checkout toggle form
+  document.getElementById('checkout-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await saveCheckoutSettings();
   });
   
   // Add admin form
@@ -147,6 +157,23 @@ async function saveShippingSettings() {
   try {
     await updateStoreSettings({ ...settings, ...updates });
     showToast('Paramètres de livraison enregistrés', 'success');
+  } catch (err) {
+    showToast('Erreur lors de l\'enregistrement', 'error');
+  }
+}
+
+async function saveCheckoutSettings() {
+  const enabled = document.getElementById('checkout-enabled').checked;
+
+  try {
+    await updateStoreSettings({ ...settings, checkout_enabled: enabled });
+    settings.checkout_enabled = enabled;
+    showToast(
+      enabled
+        ? 'Commandes en ligne activees'
+        : 'Commandes en ligne desactivees',
+      'success'
+    );
   } catch (err) {
     showToast('Erreur lors de l\'enregistrement', 'error');
   }

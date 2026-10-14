@@ -505,6 +505,52 @@
 }
 
 /* ============================================
+   CHECKOUT DISABLED NOTICE
+   ============================================ */
+.checkout-disabled {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-warm);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  text-align: center;
+}
+
+.checkout-disabled__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 20px;
+  margin-bottom: var(--space-1);
+}
+
+.checkout-disabled__text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.checkout-disabled__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: #25D366;
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  border-radius: 999px;
+  transition: opacity var(--transition-base);
+}
+
+.checkout-disabled__whatsapp:hover {
+  opacity: 0.85;
+}
+
+/* ============================================
    CHECKOUT BUTTON
    ============================================ */
 .checkout-btn {

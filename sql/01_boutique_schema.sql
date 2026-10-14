@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS boutique_store_settings (
   whatsapp_number text,
   address text,
   currency text DEFAULT 'USD',
+  -- checkout / paiement sou sit la (dezaktive pa defo - admin ka aktive l)
+  checkout_enabled boolean DEFAULT false,
   -- livrezon
   delivery_enabled boolean DEFAULT true,
   pickup_enabled boolean DEFAULT true,

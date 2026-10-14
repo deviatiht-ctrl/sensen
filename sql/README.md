@@ -15,6 +15,7 @@ admin** ak Sensen Accessories.
 | 4 | `04_boutique_admin.sql` | Mete email admin ou (chanje l anvan!) |
 | 5 | `05_boutique_seed.sql` | *Opsyonel* : katalog demo Sensen Accessories + mode paiement egzanp |
 | 6 | `06_sensen_catalog.sql` | *Rekòmande* : katalog **reyel** la (326 pwodwi katalog WhatsApp +509 36 71 5753, pri an **HTG**) |
+| 7 | `07_checkout_toggle.sql` | Kolòn `checkout_enabled` — switch admin pou bloke/kite kòmande + paiyeman sou sit la (**dezaktive** pa defo) |
 
 ## Tab yo
 

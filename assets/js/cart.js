@@ -17,11 +17,41 @@ let storeSettings = {};
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
   storeSettings = await fetchStoreSettings();
+  applyCheckoutAvailability();
   initDeliveryMethods();
   await loadPaymentMethods();
   initCheckoutForm();
   loadCart();
 });
+
+/**
+ * Quand checkout_enabled est false dans les parametres :
+ * le client voit son panier mais ne peut ni payer ni commander.
+ */
+function applyCheckoutAvailability() {
+  if (storeSettings.checkout_enabled === true) return;
+
+  ['.delivery-methods', '.payment-methods', '.shipping-form', '.promo-code'].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+
+  const notice = document.getElementById('checkout-disabled');
+  if (!notice) return;
+
+  notice.style.display = 'block';
+
+  const wa = document.getElementById('checkout-whatsapp');
+  const phone = (storeSettings.whatsapp_number || storeSettings.contact_phone || '')
+    .replace(/[^0-9]/g, '');
+  if (wa) {
+    if (phone) {
+      wa.href = `https://wa.me/${phone}`;
+    } else {
+      wa.style.display = 'none';
+    }
+  }
+}
 
 // ============================================
 // CART LOADING
@@ -478,6 +508,11 @@ function initCheckoutForm() {
 }
 
 async function submitOrder() {
+  if (storeSettings.checkout_enabled !== true) {
+    showToast('Les commandes en ligne ne sont pas encore disponibles', 'error');
+    return;
+  }
+
   if (cartItems.length === 0) {
     showToast('Votre panier est vide', 'error');
     return;
