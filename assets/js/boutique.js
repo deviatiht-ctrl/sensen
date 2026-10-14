@@ -387,23 +387,16 @@ async function performSearch(query) {
 // ============================================
 
 function initInfiniteScroll() {
-  const loadMoreBtn = document.querySelector('.load-more__btn');
-  
-  if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', () => {
+  const sentinel = document.querySelector('.load-more');
+  if (!sentinel || !('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
       loadProducts(true);
-    });
-  }
-  
-  // Optional: Intersection Observer for true infinite scroll
-  // const observer = new IntersectionObserver((entries) => {
-  //   if (entries[0].isIntersecting && hasMoreProducts && !isLoading) {
-  //     loadProducts(true);
-  //   }
-  // });
-  //
-  // const sentinel = document.querySelector('.load-more');
-  // if (sentinel) observer.observe(sentinel);
+    }
+  }, { rootMargin: '600px 0px' });
+
+  observer.observe(sentinel);
 }
 
 // ============================================
@@ -430,8 +423,8 @@ function showLoading(show) {
 }
 
 function updateLoadMoreBtn() {
-  const btn = document.querySelector('.load-more__btn');
-  if (btn) btn.style.display = hasMoreProducts ? '' : 'none';
+  const sentinel = document.querySelector('.load-more');
+  if (sentinel) sentinel.style.display = hasMoreProducts ? '' : 'none';
 }
 
 function showEmptyState(show) {

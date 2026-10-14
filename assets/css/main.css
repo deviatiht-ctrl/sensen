@@ -293,6 +293,7 @@ h6 { font-size: 1rem; }
   right: 0;
   background: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 12px 30px rgba(10, 10, 10, 0.12);
   padding: var(--space-3);
   transform: translateY(-100%);
   opacity: 0;
@@ -310,19 +311,26 @@ h6 { font-size: 1rem; }
   max-width: 600px;
   margin: 0 auto;
   display: block;
-  padding: var(--space-2) 0;
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 22px;
+  padding: 14px 24px;
+  border: 2px solid var(--color-rose);
+  border-radius: 999px;
+  font-size: 20px;
   font-family: var(--font-display);
   font-weight: 400;
-  background: transparent;
+  color: var(--color-text);
+  background: var(--color-bg-warm);
   outline: none;
-  transition: border-color var(--transition-base);
+  transition: border-color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
+}
+
+.search-overlay__input::placeholder {
+  color: var(--color-text-muted);
 }
 
 .search-overlay__input:focus {
   border-color: var(--color-accent);
+  background: var(--color-bg);
+  box-shadow: 0 6px 20px rgba(10, 10, 10, 0.10);
 }
 
 .search-overlay__close {
