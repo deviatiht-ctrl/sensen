@@ -10,6 +10,7 @@ let currentOffset = 0;
 let isLoading = false;
 let hasMoreProducts = true;
 let categories = [];
+let loadToken = 0;
 const PRODUCTS_PER_PAGE = 12;
 
 // ============================================
@@ -35,7 +36,12 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function loadCategoryFilters() {
   categories = await fetchCategories();
-  
+
+  // Si le slug de l'URL n'existe pas (vieux lien), on revient a "Tout"
+  if (currentCategory !== 'all' && !getCategoryBySlug(currentCategory)) {
+    currentCategory = 'all';
+  }
+
   const container = document.querySelector('.filter-bar__categories');
   if (container) {
     if (categories.length === 0) {
@@ -80,19 +86,18 @@ function getCategoryBySlug(slug) {
  * Load products from Supabase with filters
  */
 async function loadProducts(append = false) {
-  if (isLoading || (!append && !hasMoreProducts)) return;
-  
+  if (append && (isLoading || !hasMoreProducts)) return;
+  const token = ++loadToken;
+
   isLoading = true;
   showLoading(true);
-  
+
   try {
     let query = supabase
       .from(TBL.products)
       .select('*, category:category_id (id, name, slug)')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true })
-      .range(currentOffset, currentOffset + PRODUCTS_PER_PAGE - 1);
-    
+      .eq('is_active', true);
+
     // Apply category filter (categories are created by the admin)
     if (currentCategory !== 'all') {
       const category = getCategoryBySlug(currentCategory);
@@ -100,8 +105,8 @@ async function loadProducts(append = false) {
         query = query.eq('category_id', category.id);
       }
     }
-    
-    // Apply sorting
+
+    // Apply sorting first, then display_order as a stable tiebreaker
     if (currentSort === 'price_asc') {
       query = query.order('price', { ascending: true });
     } else if (currentSort === 'price_desc') {
@@ -109,29 +114,34 @@ async function loadProducts(append = false) {
     } else {
       query = query.order('created_at', { ascending: false });
     }
-    
+    query = query
+      .order('display_order', { ascending: true })
+      .range(currentOffset, currentOffset + PRODUCTS_PER_PAGE - 1);
+
     const { data: products, error } = await query;
-    
+
     if (error) {
       console.error('Supabase error details:', error);
       throw error;
     }
-    
-    console.log('Loaded products:', products?.length || 0, products);
-    
-    // Check if we have more products
-    hasMoreProducts = products.length === PRODUCTS_PER_PAGE;
-    
-    // Render products
+
+    // Reponse perimee : un autre chargement plus recent a deja pris le relais
+    if (token !== loadToken) return;
+
+    const list = products || [];
+    hasMoreProducts = list.length === PRODUCTS_PER_PAGE;
+
     if (append) {
-      appendProducts(products);
+      appendProducts(list);
     } else {
-      renderProducts(products);
+      renderProducts(list);
     }
-    
-    currentOffset += products.length;
-    
+
+    currentOffset += list.length;
+    updateLoadMoreBtn();
+
   } catch (err) {
+    if (token !== loadToken) return;
     console.error('Error loading products:', err);
     const grid = document.querySelector('.product-grid');
     if (grid) {
@@ -144,8 +154,10 @@ async function loadProducts(append = false) {
       `;
     }
   } finally {
-    isLoading = false;
-    showLoading(false);
+    if (token === loadToken) {
+      isLoading = false;
+      showLoading(false);
+    }
   }
 }
 
@@ -341,12 +353,15 @@ function initSearch() {
 }
 
 async function performSearch(query) {
+  const token = ++loadToken; // invalide tout chargement en cours
+
   if (!query.trim()) {
     currentOffset = 0;
+    hasMoreProducts = true;
     loadProducts();
     return;
   }
-  
+
   try {
     const { data: products, error } = await supabase
       .from(TBL.products)
@@ -355,10 +370,13 @@ async function performSearch(query) {
       .ilike('name', `%${query}%`)
       .order('display_order', { ascending: true })
       .limit(20);
-    
+
     if (error) throw error;
-    
-    renderProducts(products);
+    if (token !== loadToken) return;
+
+    isLoading = false;
+    showLoading(false);
+    renderProducts(products || []);
   } catch (err) {
     console.error('Error searching products:', err);
   }
@@ -409,6 +427,11 @@ function showLoading(show) {
     const loader = grid.querySelector('.loading-state');
     loader?.remove();
   }
+}
+
+function updateLoadMoreBtn() {
+  const btn = document.querySelector('.load-more__btn');
+  if (btn) btn.style.display = hasMoreProducts ? '' : 'none';
 }
 
 function showEmptyState(show) {
